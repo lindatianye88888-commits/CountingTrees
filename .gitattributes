@@ -1,0 +1,5 @@
+# Preserve the exact runtime GBK/CRLF bytes and manifest checksums.
+* -text
+*.dll binary
+*.zip binary
+*.png binary

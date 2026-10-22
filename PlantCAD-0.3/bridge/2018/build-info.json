@@ -1,0 +1,38 @@
+{
+  "target": "AutoCAD 2018 x64",
+  "profile": {
+    "key": "2018",
+    "years": [
+      2018
+    ],
+    "series_min": "R22.0",
+    "series_max": "R22.0",
+    "sdk": "22.0.0",
+    "framework": "4.6",
+    "module": "bridge/2018/PlantCADBridge.dll"
+  },
+  "compatibility_source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-Customization/files/GUID-A6C680F2-DE2E-418A-A182-E4884073338A.htm",
+  "inputs": {
+    "PlantCADBridge.cs": "620069a553d1143ce976978d1e2a8d48c5759022068ef54ac354c74d391b96a3",
+    "LispValueReader.cs": "16bfa6696e47b338af732053e0d29bcdeda12c4f92638396a2fb290acaaf7a6e",
+    "PlantCADPanel.cs": "73f29f16d657e83c8a207ecdec57ad32b32c955cfb6ff4f552d168128644a69f",
+    "PlantCADWorkbench.cs": "e1d4ddfd979f5c3eede5dc04a0f07bf1e7bd81ce79c77f6518c94e730a2dd6ea",
+    "PlantAreaGeometry.cs": "848299e8a232461f6ceb229492683e23a9380fb375aa76d4d3aba8347c089c9d",
+    "PlantAreaRepair.cs": "e3cf02eb4b05440a7d85fdd6bb37e6a243db255e105ac5dc4a1f2fc10b69aae9",
+    "PlantAreaInteraction.cs": "7e17e335eeedc6a432b92225e4618dae193a1eff765f8e42956b41159f990d37",
+    "PlantAreaNormalization.cs": "dadfdef14f0d26b9ad3be1451b693fae6e65fd7cd44cc82d2ec22903b3ebd8e8",
+    "PlantInstanceEditing.cs": "79cbcd3f69b277668766cbde200e676512a820e7bf27aa962ff5e74cffe5db02",
+    "PlantOutput.cs": "8f101ad718f4efb45bbd9c66cf079466ecd2b8cd0736a244e8760cc708837e1c",
+    "PlantAreaLeader.cs": "351434bfb49d39d5c7449c5bf97bf531fd03a116b3210c12ec0c1ea52cc714dc",
+    "PlantAreaManual.cs": "6a4837651a0871a4fe2090153f48b871097edc5d331f9089a5186dacff93a929",
+    "PlantAreaLabelEdit.cs": "f5f8eec1579c3099e73fa1f790a948c75fca6c23cf8b5239cc9354e825940385",
+    "PlantProjectDialog.cs": "a9ab5a3850b2f62a6eb5fe6a59f36d7ef790ec94b7df1762b30be8fef495270a",
+    "PlantProjectBridge.cs": "e110d15bd744311782d50380b32d98fce345cf3bc89dbb233e9927e02db8030a",
+    "acmgd.dll": "9ac4df1f61d0a2ab2c95bdd06585d8b6faccf6eec3fedf385000bb6eec40cddd",
+    "acdbmgd.dll": "84df8a7c65a82c61a5e85e93af32bea62069a8a671c75c7a81679dccb840ac51",
+    "accoremgd.dll": "992d402416660ec66cefd5661e001091984a399a995ece97b886c68c023a25b3",
+    "csc.exe": "aae1db57f898ca8bda18590c56f86ced6d0ead80c22033b76fdfe9119706f116",
+    "target": "2018"
+  },
+  "sha256": "7c963963c76820b2e9219c7fa5639ffb78b26d707c83dec686841c21ba4db55e"
+}

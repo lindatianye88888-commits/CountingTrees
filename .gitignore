@@ -1,0 +1,39 @@
+# Publish only the software, documentation and distributable package.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/开始使用.md
+!/PlantCAD-0.3/
+!/releases/
+
+# Machine state, generated client paths and private CAD test evidence.
+**/__pycache__/
+**/*.py[cod]
+/PlantCAD-0.3/install-state.json
+**/queue-root.json
+/PlantCAD-0.3/bridge/clients/
+/PlantCAD-0.3/bridge/runtime/
+/PlantCAD-0.3/bridge/host-output/
+/PlantCAD-0.3/developer/bin/
+/PlantCAD-0.3/developer/backups/
+/PlantCAD-0.3/developer/fixtures/
+/PlantCAD-0.3/developer/reports/
+**/*verification.json
+
+# Credentials and third-party SDK/reference binaries are never distributed.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/acmgd.dll
+**/acdbmgd.dll
+**/accoremgd.dll
+**/*.nupkg
+**/*.fas
+**/*.dwg
+**/*.dxf
+**/*.bak
+**/*.ac$
+**/*.dwl
+**/*.dwl2
