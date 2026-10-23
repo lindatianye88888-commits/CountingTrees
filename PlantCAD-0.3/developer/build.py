@@ -72,7 +72,7 @@ def build():
             host_scopes.append('AutoCAD 2014 x64 + TArch9 desktop: installed bundle on copied DWG, real COM attributes/LDATA, area labels, erase/undo, full and split schedules, named legends and resizable project window')
             tested=True
     except (OSError,ValueError):pass
-    manifest=dict(name='CountingTrees',name_zh='数树',display_name='CountingTrees（数树）',release='0.3',date=datetime.date.today().isoformat(),revision='0.3.24',target='Windows AutoCAD 2014—2024 x64; matching Tianzheng versions require host acceptance',
+    manifest=dict(name='CountingTrees',name_zh='数树',display_name='CountingTrees（数树）',author='梅梅的AI景观实验室',contacts={'gmail':'lindatianye88888@gmail.com','qq':'375803231@qq.com'},release='0.3',date=datetime.date.today().isoformat(),revision='0.3.25',target='Windows AutoCAD 2014—2024 x64; matching Tianzheng versions require host acceptance',
                   compatibility_groups=TARGETS,compatibility_source=COMPATIBILITY_URL,unverified_hosts=list(range(2015,2025)),
                   host_tested=False,host_tested_years=[2014] if tested else [],host_test_scope='; '.join(host_scopes+['2015—2024 native host/Tianzheng acceptance pending; not full GUI/print or third-party object editing acceptance']),automated_rule_tests=sum(counts.values()),test_groups=counts,
                   catalogue_entries=catalogue_count,runtime_encoding='CP936/GBK',files=files)

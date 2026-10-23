@@ -19,6 +19,7 @@ using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 [assembly: CommandClass(typeof(PlantCADBridge.Bridge))]
 [assembly: System.Reflection.AssemblyTitle("CountingTrees（数树）")]
 [assembly: System.Reflection.AssemblyProduct("CountingTrees")]
+[assembly: System.Reflection.AssemblyCompany(PlantCADBridge.ProductIdentity.Author)]
 [assembly: System.Reflection.AssemblyDescription("数树 · 植物布置、面积统计与关联出图")]
 
 namespace PlantCADBridge {

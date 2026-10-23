@@ -22,7 +22,7 @@ namespace PlantCADBridge {
    layout.RowStyles.Add(new RowStyle(SizeType.Absolute,126));
    layout.RowStyles.Add(new RowStyle(SizeType.Absolute,43));
    layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-   layout.RowStyles.Add(new RowStyle(SizeType.Absolute,64));
+   layout.RowStyles.Add(new RowStyle(SizeType.Absolute,86));
    var title=new Label {Text="CountingTrees / 数树 · 双击标题收起",Dock=DockStyle.Fill,ForeColor=Color.FromArgb(60,98,71),Font=new Font(Font.FontFamily,10F,FontStyle.Bold)};
    title.DoubleClick+=(sender,args)=>RequestCollapse();
    tips.SetToolTip(title,"双击标题或窗口标题栏，收起为植物小圆标。");
@@ -64,11 +64,17 @@ namespace PlantCADBridge {
    AddGroup("设置","单位 / 比例 / 图层 / 连接",new string[][] {
     new[]{"图纸单位、比例与字高","settings"},new[]{"按已知长度校准单位","calibrate"},new[]{"保存项目到当前DWG","save_project"},new[]{"查看项目保存位置","save_info"},new[]{"检查植物图层状态","layers"},new[]{"连接当前图纸到 AI","connect"},new[]{"重新加载当前图纸","reload"},new[]{"使用帮助","help"}});
    menus.SizeChanged+=(s,e)=>LayoutGroups();
-   var footer=new TableLayoutPanel {Dock=DockStyle.Fill,ColumnCount=1,RowCount=2,Margin=Padding.Empty};
+   var footer=new TableLayoutPanel {Dock=DockStyle.Fill,ColumnCount=1,RowCount=3,Margin=Padding.Empty};
    footer.RowStyles.Add(new RowStyle(SizeType.Absolute,23));footer.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+   footer.RowStyles.Add(new RowStyle(SizeType.Absolute,22));
    status.Dock=DockStyle.Fill;status.AutoEllipsis=true;
    hint.Dock=DockStyle.Fill;hint.AutoEllipsis=true;
    footer.Controls.Add(status,0,0);footer.Controls.Add(hint,0,1);
+   var credits=new LinkLabel {Text=ProductIdentity.Author+" · 关于/联系",Dock=DockStyle.Fill,
+    AutoEllipsis=true,TextAlign=ContentAlignment.MiddleLeft,Margin=Padding.Empty,
+    LinkColor=Color.FromArgb(60,98,71),ActiveLinkColor=Color.FromArgb(35,72,47),LinkBehavior=LinkBehavior.HoverUnderline};
+   credits.LinkClicked+=(s,e)=>ProductIdentity.ShowAbout(FindForm());
+   tips.SetToolTip(credits,ProductIdentity.ContactText);footer.Controls.Add(credits,0,2);
    layout.Controls.Add(title,0,0);layout.Controls.Add(summary,0,1);layout.Controls.Add(quick,0,2);layout.Controls.Add(menus,0,3);layout.Controls.Add(footer,0,4);
    layout.DoubleClick+=(sender,args)=>RequestCollapse();
    preview.DoubleClick+=(sender,args)=>RequestCollapse();
@@ -133,6 +139,16 @@ namespace PlantCADBridge {
    base.Dispose(disposing);
   }
  }
+ internal static class ProductIdentity {
+  internal const string Author="梅梅的AI景观实验室";
+  internal const string Gmail="lindatianye88888@gmail.com";
+  internal const string QqMail="375803231@qq.com";
+  internal const string ContactText="Gmail："+Gmail+"\nQQ邮箱："+QqMail;
+  internal static void ShowAbout(IWin32Window owner) {
+   MessageBox.Show(owner,"CountingTrees（数树）\n\n署名："+Author+"\n\n"+ContactText,
+    "关于 CountingTrees（数树）",MessageBoxButtons.OK,MessageBoxIcon.Information);
+  }
+ }
  internal sealed class SymbolPreview : Control {
   public int Style;public string PlantName="";
   public SymbolPreview(){DoubleBuffered=true;}
@@ -180,9 +196,10 @@ namespace PlantCADBridge {
     SetStyle(ControlStyles.StandardDoubleClick|ControlStyles.StandardClick,true);
     SetPlant("");
     var menu=new ContextMenuStrip {ShowImageMargin=false};
-    menu.Items.Add("打开植物操作面板",null,(s,e)=>ActivatePanel());ContextMenuStrip=menu;
+    menu.Items.Add("打开植物操作面板",null,(s,e)=>ActivatePanel());
+    menu.Items.Add("关于 CountingTrees / 联系作者",null,(s,e)=>ProductIdentity.ShowAbout(FindForm()));ContextMenuStrip=menu;
    }
-   public void SetPlant(string name){tip.SetToolTip(this,"CountingTrees（数树）"+(String.IsNullOrEmpty(name) ? "" : " · "+name)+"\n双击展开，拖动移动");}
+   public void SetPlant(string name){tip.SetToolTip(this,"CountingTrees（数树）"+(String.IsNullOrEmpty(name) ? "" : " · "+name)+"\n"+ProductIdentity.Author+"\n双击展开，拖动移动；右键查看联系方式");}
    public void ActivatePanel(){expand();}
    protected override void OnMouseDoubleClick(MouseEventArgs e){base.OnMouseDoubleClick(e);if(e.Button==MouseButtons.Left&&!moved)ActivatePanel();}
    protected override void OnMouseDown(MouseEventArgs e) {

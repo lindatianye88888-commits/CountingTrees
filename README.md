@@ -1,10 +1,15 @@
 # CountingTrees（数树）
 
-用于 Windows AutoCAD 的景观植物绘图插件，当前开发版本 **0.3.24**。支持乔木、灌木球、灌木与地被的布置、区域面积计算、植物填充、引线标注和关联苗木数量表，并提供本地 MCP 接口。
+用于 Windows AutoCAD 的景观植物绘图插件，当前开发版本 **0.3.25**。支持乔木、灌木球、灌木与地被的布置、区域面积计算、植物填充、引线标注和关联苗木数量表，并提供本地 MCP 接口。
+
+**署名：梅梅的AI景观实验室**  
+Gmail：[lindatianye88888@gmail.com](mailto:lindatianye88888@gmail.com) · QQ 邮箱：[375803231@qq.com](mailto:375803231@qq.com)
+
+软件工作台底部显示署名，点击“关于/联系”可查看两个邮箱；植物小圆标右键菜单也有联系方式入口。
 
 ## 安装与使用
 
-下载 [0.3.24 开发版安装包](releases/CountingTrees_数树_0.3.24.zip)，解压后，先保存图纸并关闭 AutoCAD／天正，再双击 `PlantCAD-0.3/安装操作面板.cmd`。安装脚本需要 Python 3；本项目开发环境使用 Python 3.12。
+下载 [0.3.25 开发版安装包](releases/CountingTrees_数树_0.3.25.zip)，解压后，先保存图纸并关闭 AutoCAD／天正，再双击 `PlantCAD-0.3/安装操作面板.cmd`。安装脚本需要 Python 3；本项目开发环境使用 Python 3.12。
 
 启动 CAD，输入 `COUNTINGTREES` 或 `数树` 打开植物工作台。也可以从本仓库的 `PlantCAD-0.3` 目录直接运行安装脚本。
 

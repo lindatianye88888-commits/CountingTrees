@@ -2,9 +2,14 @@
   "name": "CountingTrees",
   "name_zh": "数树",
   "display_name": "CountingTrees（数树）",
+  "author": "梅梅的AI景观实验室",
+  "contacts": {
+    "gmail": "lindatianye88888@gmail.com",
+    "qq": "375803231@qq.com"
+  },
   "release": "0.3",
-  "date": "2026-10-22",
-  "revision": "0.3.24",
+  "date": "2026-10-23",
+  "revision": "0.3.25",
   "target": "Windows AutoCAD 2014—2024 x64; matching Tianzheng versions require host acceptance",
   "compatibility_groups": [
     {
@@ -159,38 +164,38 @@
     },
     {
       "name": "bridge/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "89288006332eae6ad5504e43510e47bd30bc6e936eb9c5506265eeca2b2250d9",
+      "size": 125440,
+      "sha256": "e27a0bcf9e04c1e5c3ddd0ad81d47e49e373c8489939b772be54832433c62da3",
       "encoding": "binary"
     },
     {
       "name": "bridge/2015-2016/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "8ad66c56b1e6a966658af59fc4bd471778db515cd4f6b60e861b67426a26ec51",
+      "size": 125440,
+      "sha256": "ff7cffddf3fba07765e9a65de261a1357f8b99aa3ee911373e728eff5dac5264",
       "encoding": "binary"
     },
     {
       "name": "bridge/2017/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "17c720e36d1cd8d8c6dc66d82520a211ac5e9710c5edbf66cbe1e8a5edd101d9",
+      "size": 125440,
+      "sha256": "af31956aa9bab97b420d9bf91c2c54aa7313df064963c0930f3830fcd1786a0b",
       "encoding": "binary"
     },
     {
       "name": "bridge/2018/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "7c963963c76820b2e9219c7fa5639ffb78b26d707c83dec686841c21ba4db55e",
+      "size": 125440,
+      "sha256": "ae1cb499d34413695e0d7bd21f92f67a3e0c2e1c820a300aa17849292029b0ed",
       "encoding": "binary"
     },
     {
       "name": "bridge/2019-2020/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "8b4b32e3d68d094b2ef67733b0804402a2b8d18e5a11e982e4a3c308bf0503b7",
+      "size": 125440,
+      "sha256": "010e895a8d88d39b1cb3c6685d4e6cbd4af15471cdd7fdcf6cb1e2916932c253",
       "encoding": "binary"
     },
     {
       "name": "bridge/2021-2024/PlantCADBridge.dll",
-      "size": 123904,
-      "sha256": "041ea991e18504f7138a2cb9848c0c89212519a37ab60a54465d3b6d3b0a1a2d",
+      "size": 125440,
+      "sha256": "9423bda2c4e6c68247386ca1b961b815699bc95dcd2886872276b8961e46837a",
       "encoding": "binary"
     }
   ]
