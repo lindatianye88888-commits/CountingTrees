@@ -236,6 +236,8 @@ class DesignRules(fixtures.Rules):
     def test_new_tables_use_separate_layers_and_do_not_require_placed_plants(self):
         calls=[]
         self.rt.builtins['pl:ai-model-trees']=lambda:None
+        self.rt.builtins['pl:all-areas']=lambda:None
+        self.rt.builtins['pl:all-project-sources']=lambda:None
         self.rt.builtins['pl:db-get']=lambda k,d:d
         self.rt.builtins['pl:defs']=lambda:[self.p]
         self.rt.builtins['pl:catalog']=lambda:None

@@ -104,7 +104,8 @@ pl_settings : dialog {
  : toggle { key = "show_number"; label = "图例同时显示规格编号（默认关闭）"; }
  : text { label = "例如 1:100、纸面字高0.25cm，毫米模型中字高为25cm。"; }
  : text { label = "在布局纸空间直接布置时按1:1计算；不同视口比例请另建视图。"; }
- : text { label = "比例修改后会刷新当前图的图块内文字；冠幅尺寸与已有对象的单位保持原值。"; }
+ : text { label = "单位、比例和字高同步用于已有乔木文字、灌木引线及面积指标。"; }
+ : text { label = "文字较长时自动延长引线横线；模型冠幅和已计算面积保持原值。"; }
  : text { key = "error"; width = 72; }
  ok_cancel;
 }

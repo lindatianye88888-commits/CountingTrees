@@ -8,8 +8,8 @@
     "qq": "375803231@qq.com"
   },
   "release": "0.3",
-  "date": "2026-10-23",
-  "revision": "0.3.25",
+  "date": "2026-10-26",
+  "revision": "0.3.28",
   "target": "Windows AutoCAD 2014—2024 x64; matching Tianzheng versions require host acceptance",
   "compatibility_groups": [
     {
@@ -100,9 +100,9 @@
   "host_tested": false,
   "host_tested_years": [],
   "host_test_scope": "2015—2024 native host/Tianzheng acceptance pending; not full GUI/print or third-party object editing acceptance",
-  "automated_rule_tests": 268,
+  "automated_rule_tests": 309,
   "test_groups": {
-    "plant_rules": 258,
+    "plant_rules": 299,
     "mcp_protocol": 10
   },
   "catalogue_entries": 468,
@@ -110,8 +110,8 @@
   "files": [
     {
       "name": "plantcad-ai.lsp",
-      "size": 18485,
-      "sha256": "3c199c8c3b7017cc5e487ca93c0a4107098ad5da77c4a1d158015f46c603bbca",
+      "size": 18694,
+      "sha256": "78599150649b3ba46541ead8478c76767c3d9516d8198b45ca1050675b2099b3",
       "encoding": "GBK"
     },
     {
@@ -128,8 +128,14 @@
     },
     {
       "name": "plantcad-design.lsp",
-      "size": 31860,
-      "sha256": "e73d53189854f719f55ba40cf5f07f703f704a86214efb2b6982ef7fab2dae63",
+      "size": 31914,
+      "sha256": "2ae98aae050ada85b0949f68d3af4924be59e490cd601e974276f932b3a3377b",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-project-import.lsp",
+      "size": 7642,
+      "sha256": "0c7b8e415784d55258a62f8fe9bb755977e7c6746565f17e5ac7de1df4d6c5d7",
       "encoding": "GBK"
     },
     {
@@ -140,20 +146,20 @@
     },
     {
       "name": "plantcad-workflow.lsp",
-      "size": 70458,
-      "sha256": "fab84a738ed54bc99855991503e9d1bad0801aba7e7ae03971b9b7bf57df933b",
+      "size": 70455,
+      "sha256": "df757d4ca3b958d3ed8df02e9d572a1e432d5d1570a160f880c0b382f4defd82",
       "encoding": "GBK"
     },
     {
       "name": "plantcad.dcl",
-      "size": 8640,
-      "sha256": "22ce53a5335b1d53eb0f37f8d4dddf2ddee83e5e9e68911aadc97e01df1f1a48",
+      "size": 8711,
+      "sha256": "e71f4a898ca9aee126767988729e3032a0e24205daf1ad5bde58bf62da7370d5",
       "encoding": "GBK"
     },
     {
       "name": "plantcad.lsp",
-      "size": 36616,
-      "sha256": "0dbbb6545f3f0c8cc5986c3fe8decee0e95e7bb455e7a6ccf3853361cea6f997",
+      "size": 37466,
+      "sha256": "15e28633918cd6cdc8e1d386036b3a1399a4f80be594af0eaba65ea77d2857a8",
       "encoding": "GBK"
     },
     {
@@ -164,38 +170,38 @@
     },
     {
       "name": "bridge/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "e27a0bcf9e04c1e5c3ddd0ad81d47e49e373c8489939b772be54832433c62da3",
+      "size": 131072,
+      "sha256": "f3ddc4718d2ac02ded2718f4ccda27ed417e1f0394dc6d76f9fc26221aaab1fc",
       "encoding": "binary"
     },
     {
       "name": "bridge/2015-2016/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "ff7cffddf3fba07765e9a65de261a1357f8b99aa3ee911373e728eff5dac5264",
+      "size": 131072,
+      "sha256": "74277ec92b3d55dcea37e5ca26dc5b8c7758a3f7281a5abf236ad31dd5902fa3",
       "encoding": "binary"
     },
     {
       "name": "bridge/2017/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "af31956aa9bab97b420d9bf91c2c54aa7313df064963c0930f3830fcd1786a0b",
+      "size": 131072,
+      "sha256": "b1d7c17626ce017a8188e998e6965bb21f200c180f7e7288f9c2ed340fb74a11",
       "encoding": "binary"
     },
     {
       "name": "bridge/2018/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "ae1cb499d34413695e0d7bd21f92f67a3e0c2e1c820a300aa17849292029b0ed",
+      "size": 131072,
+      "sha256": "8b11ae36dc7089a4e1b88282982b1bfe90180bd71893406ed66ee005d913ac17",
       "encoding": "binary"
     },
     {
       "name": "bridge/2019-2020/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "010e895a8d88d39b1cb3c6685d4e6cbd4af15471cdd7fdcf6cb1e2916932c253",
+      "size": 131072,
+      "sha256": "07285353fe7c83578980c04c05005b34a68988cb60dee8a426501f0db0dda79a",
       "encoding": "binary"
     },
     {
       "name": "bridge/2021-2024/PlantCADBridge.dll",
-      "size": 125440,
-      "sha256": "9423bda2c4e6c68247386ca1b961b815699bc95dcd2886872276b8961e46837a",
+      "size": 131072,
+      "sha256": "a132ca2e1671a2519bbcfd306fa5245eda00b1a46b3bd60baa780b3b8c6f839b",
       "encoding": "binary"
     }
   ]

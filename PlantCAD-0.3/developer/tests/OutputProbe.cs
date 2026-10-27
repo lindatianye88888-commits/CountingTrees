@@ -18,7 +18,7 @@ public class OutputProbe {
  static ObjectId Id(string handle){return DB.GetObjectId(false,new Handle(Int64.Parse(handle,System.Globalization.NumberStyles.HexNumber)),0);}
  static string Fill(string handle,string pattern){using(var args=new ResultBuffer(new TypedValue(5005,handle),new TypedValue(5005,pattern),new TypedValue(5001,.1),new TypedValue(5001,0.0),new TypedValue(5005,"PL_花境_填充")))return Text(new Bridge().WriteAreaFill(args));}
   static string Label(string handle,string area,string text,int layout,double height=.25){using(var args=new ResultBuffer(new TypedValue(5005,handle),new TypedValue(5005,area),new TypedValue(5009,new Point3d(2,2,0)),new TypedValue(5009,new Point3d(-8,-4,0)),new TypedValue(5005,text),new TypedValue(5001,height),new TypedValue(5005,"PL_灌木_标注"),new TypedValue(5003,layout)))return Text(new Bridge().WriteAreaLeader(args));}
-  static string PickedLabel(string handle,string area,string text,int layout,Point3d elbow,Point3d tail){using(var args=new ResultBuffer(new TypedValue(5005,handle),new TypedValue(5005,area),new TypedValue(5009,new Point3d(2,2,0)),new TypedValue(5009,tail),new TypedValue(5005,text),new TypedValue(5001,1.0),new TypedValue(5005,"PL_灌木_标注"),new TypedValue(5003,layout),new TypedValue(5009,elbow)))return Text(new Bridge().WriteAreaLeader(args));}
+  static string PickedLabel(string handle,string area,string text,int layout,Point3d elbow,Point3d tail,double height=1.0){using(var args=new ResultBuffer(new TypedValue(5005,handle),new TypedValue(5005,area),new TypedValue(5009,new Point3d(2,2,0)),new TypedValue(5009,tail),new TypedValue(5005,text),new TypedValue(5001,height),new TypedValue(5005,"PL_灌木_标注"),new TypedValue(5003,layout),new TypedValue(5009,elbow)))return Text(new Bridge().WriteAreaLeader(args));}
   static Point3d LandingEnd(MLeader leader){int index=(int)leader.GetLeaderIndexes()[0],line=(int)leader.GetLeaderLineIndexes(index)[0];using(var text=leader.MText)return leader.GetLastVertex(line)+leader.GetDogleg(index)*(leader.GetDoglegLength(index)+text.ActualWidth);}
  static void AddList(List<TypedValue> v,IEnumerable<string> strings){v.Add(new TypedValue(5016));foreach(string s in strings)v.Add(new TypedValue(5005,s));v.Add(new TypedValue(5017));}
  static string TableWrite(string handle,int rows,bool legendSecond=false,double height=.25,bool namedLegend=false){
@@ -166,11 +166,11 @@ public class OutputProbe {
      using(var tr=DB.TransactionManager.StartTransaction()){
       var leader=(MLeader)tr.GetObject(Id(picked),OpenMode.ForWrite);int index=(int)leader.GetLeaderIndexes()[0],line=(int)leader.GetLeaderLineIndexes(index)[0];
       Check(leader.GetLastVertex(line).DistanceTo(elbow)<1e-7,"Picked elbow moved");
-      Check(LandingEnd(leader).DistanceTo(tail)<1e-7,"Picked tail/width/direction changed");
+      using(var text=leader.MText)Check(LandingEnd(leader).DistanceTo(elbow+new Vector3d(sign*Math.Max(span,text.ActualWidth),0,0))<1e-7,"Picked landing failed to extend for the configured font");
       Check(leader.GetFirstVertex(line).DistanceTo(new Point3d(2,2,0))<1e-7,"Picked arrow moved");
       var attachment=layout==0?TextAttachmentType.AttachmentBottomOfTopLine:TextAttachmentType.AttachmentBottomLine;
       Check(leader.GetTextAttachmentType(LeaderDirectionType.LeftLeader)==attachment&&leader.GetTextAttachmentType(LeaderDirectionType.RightLeader)==attachment,"Left/right layout differs");
-      style=leader.TextStyleId;leaderStyle=leader.MLeaderStyle;using(var text=leader.MText)Check(text.Contents==content&&text.ActualWidth<=span+1e-7&&text.TextHeight>0,"Text wraps or exceeds picked landing");
+      style=leader.TextStyleId;leaderStyle=leader.MLeaderStyle;using(var text=leader.MText)Check(text.Contents==content&&Math.Abs(text.TextHeight-1.0)<1e-7&&Math.Abs(leader.TextHeight-1.0)<1e-7,"Short landing changed the configured font size");
       leader.TransformBy(Matrix3d.Displacement(new Vector3d(3,4,0)));
       leader.MoveMLeader(new Vector3d(-2,3,0),MoveType.MoveContentAndDoglegPoints);
       movedElbow=leader.GetLastVertex(line);movedTail=LandingEnd(leader);tr.Commit();
@@ -189,7 +189,7 @@ public class OutputProbe {
      Check(PickedLabel(picked,area,changed,layout,elbow,tail)==picked,"Refresh replaced picked leader");
      using(var tr=DB.TransactionManager.StartTransaction()){
       var leader=(MLeader)tr.GetObject(Id(picked),OpenMode.ForRead);int index=(int)leader.GetLeaderIndexes()[0],line=(int)leader.GetLeaderLineIndexes(index)[0];
-      Check(leader.GetLastVertex(line).DistanceTo(movedElbow)<1e-7&&LandingEnd(leader).DistanceTo(movedTail)<1e-7,"Refresh reset moved picked geometry");
+      using(var text=leader.MText)Check(leader.GetLastVertex(line).DistanceTo(movedElbow)<1e-7&&LandingEnd(leader).DistanceTo(movedElbow+new Vector3d(sign*Math.Max(movedTail.DistanceTo(movedElbow),text.ActualWidth),0,0))<1e-7,"Refresh changed elbow or failed to fit longer text");
       Check(leader.TextStyleId==style,"Global TEXTSTYLE changed existing label font");
       using(var text=leader.MText)Check(text.Contents==changed,"Refresh lost selected layout or species");
      }
@@ -197,6 +197,12 @@ public class OutputProbe {
      using(var tr=DB.TransactionManager.StartTransaction()){
       var leader=(MLeader)tr.GetObject(Id(next),OpenMode.ForRead);
       Check(leader.TextStyleId==style&&leader.MLeaderStyle==leaderStyle,"Global TEXTSTYLE/CMLEADERSTYLE changed next label style");
+     }
+     Check(PickedLabel(picked,area,changed,layout,elbow,tail,2.0)==picked,"Font increase replaced the existing leader");
+     using(var tr=DB.TransactionManager.StartTransaction()){
+      var leader=(MLeader)tr.GetObject(Id(picked),OpenMode.ForRead);int index=(int)leader.GetLeaderIndexes()[0],line=(int)leader.GetLeaderLineIndexes(index)[0];
+      using(var text=leader.MText)Check(Math.Abs(text.TextHeight-2.0)<1e-7&&Math.Abs(leader.TextHeight-2.0)<1e-7&&Math.Abs(leader.ArrowSize-.6)<1e-7,"Font increase was clamped by the original landing");
+      Check(leader.GetLastVertex(line).DistanceTo(movedElbow)<1e-7,"Font increase reset the picked elbow");
      }
      using(var tr=DB.TransactionManager.StartTransaction()){((Entity)tr.GetObject(Id(picked),OpenMode.ForWrite)).Erase();((Entity)tr.GetObject(Id(next),OpenMode.ForWrite)).Erase();tr.Commit();}
     }

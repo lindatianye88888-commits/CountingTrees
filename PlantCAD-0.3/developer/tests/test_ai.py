@@ -90,6 +90,7 @@ class AIRules(fixtures.Rules):
         with self.assertRaisesRegex(ValueError,'数据已变化'):
             self.rt.call('pl:ai-apply',[['plan_id','a'*32]])
     def test_visible_defs_remove_former_used_keep_planned_and_current(self):
+        self.rt.builtins.update({'pl:all-areas':lambda:[],'pl:all-project-sources':lambda:[]})
         removed=self.put('id','OLD')
         planned=self.put('id','PLANNED')
         self.database['PLANTS']=[self.p,removed,planned]

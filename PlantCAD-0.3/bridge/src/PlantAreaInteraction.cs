@@ -98,18 +98,20 @@ namespace PlantCADBridge {
    }catch(System.Exception ex){AcadApp.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n无法读取此标注文字："+ex.Message);}
    return lines.Count>0?new ResultBuffer(lines.ToArray()):null;
   }
-  static void CollectAreaLabelLines(Entity entity,Transaction tr,List<TypedValue> lines,int depth,ref int visited){
-   if(entity==null||depth>3||visited++>=128)return;
+  static void CollectAreaLabelLines(Entity entity,Transaction tr,List<TypedValue> lines,int depth,ref int visited,bool project=false){
+   if(entity==null)return;
+   if(depth>3||visited++>=128){if(project)throw new InvalidOperationException("图块嵌套或对象过多，请直接选择植物名称文字。");return;}
+   var definition=entity as AttributeDefinition;if(project&&definition!=null&&!definition.Constant)return;
    var text=entity as DBText;var mtext=entity as MText;var leader=entity as MLeader;
    string content=text!=null?text.TextString:mtext!=null?mtext.Text:null;
    if(leader!=null&&leader.ContentType==ContentType.MTextContent){using(MText label=leader.MText)if(label!=null)content=label.Text;}
    if(content!=null){foreach(string line in content.Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries))if(line.Trim().Length>0)lines.Add(new TypedValue((int)LispDataType.Text,line.Trim()));return;}
    var block=entity as BlockReference;
-   if(block!=null)foreach(ObjectId id in block.AttributeCollection)CollectAreaLabelLines(tr.GetObject(id,OpenMode.ForRead) as Entity,tr,lines,depth+1,ref visited);
+   if(block!=null)foreach(ObjectId id in block.AttributeCollection)CollectAreaLabelLines(tr.GetObject(id,OpenMode.ForRead) as Entity,tr,lines,depth+1,ref visited,project);
    // Loaded third-party annotations may expose ordinary text through Explode.
    // These are transient copies only; the source annotation is never exploded in the drawing.
    var pieces=new DBObjectCollection();
-   try{entity.Explode(pieces);foreach(DBObject piece in pieces)if(visited<128)CollectAreaLabelLines(piece as Entity,tr,lines,depth+1,ref visited);}
+   try{entity.Explode(pieces);foreach(DBObject piece in pieces)if(visited<128)CollectAreaLabelLines(piece as Entity,tr,lines,depth+1,ref visited,project);}
    catch(Autodesk.AutoCAD.Runtime.Exception){}
    finally{foreach(DBObject piece in pieces)piece.Dispose();}
   }

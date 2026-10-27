@@ -121,7 +121,7 @@ namespace PlantCADBridge {
   static void BeginLoad(Document doc,string next) {
    if(preparing != null) return;
    string package=PackageRoot();
-   string[] required={"plantcad.lsp","plantcad-core.lsp","plantcad-design.lsp","plantcad-ai.lsp","plantcad-ui.lsp","plantcad-workflow.lsp","plantcad.dcl","plantcatalog.tsv"};
+   string[] required={"plantcad.lsp","plantcad-core.lsp","plantcad-design.lsp","plantcad-ai.lsp","plantcad-ui.lsp","plantcad-workflow.lsp","plantcad-project-import.lsp","plantcad.dcl","plantcatalog.tsv"};
    foreach(string name in required) if(!File.Exists(Path.Combine(package,name))) {
     loadErrors[doc]="缺少配套文件："+name;
     workView.Message(loadErrors[doc],true); return;

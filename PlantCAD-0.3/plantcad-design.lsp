@@ -216,7 +216,7 @@
                   p (pl:edit-dialog p))
             (if p (progn (pl:save-def p) (setq index (max 0 (1- (length (pl:defs))))))))
           ((and (= status 3) p) (setq p (pl:edit-project-dialog p)) (if p (pl:save-project-spec p)))
-          ((and (= status 4) p) (pl:update-from-def p))
+          ((= status 4) (pl:collect-project-work))
           ((and (= status 7) p) (pl:db-put "CURRENT" (pl:get 'id p)) (setq quit T) (pl:placement-menu-work))
           ((and (= status 1) p) (pl:db-put "CURRENT" (pl:get 'id p))
             (princ (strcat "\n当前规格：" (pl:get 'spec_no p) " " (pl:get 'name p))) (setq quit T)))))
@@ -264,13 +264,13 @@
       (set_tile "unit" (itoa (if (< u 0) 0 u)))
       (set_tile "plot_scale" (pl:num (pl:get 'scale opts)))
       (set_tile "paper_height" (pl:num (/ (pl:get 'paper_height opts) 10.0)))
-      (set_tile "show_number" (itoa (pl:get 'show_number opts)))
+      (set_tile "show_number" (if (= (pl:get 'show_number opts) 1) "1" "0"))
       (action_tile "accept" "(pl:accept-settings)") (action_tile "cancel" "(done_dialog 0)")
       (setq status (start_dialog)) (unload_dialog dlg)
       (if (= status 1)
         (progn (pl:db-put "UNIT" (pl:get 'unit pl:*settings-result*))
-          (pl:db-put "PLOT_OPTIONS" pl:*settings-result*)
-          (pl:refresh-all-symbols))))))
+          ;; pl:run refreshes symbols and area annotations together, once.
+          (pl:db-put "PLOT_OPTIONS" pl:*settings-result*))))))
 (defun pl:symbol-attdefs (/ pair)
   (foreach pair '(("PL_NAME" "植物名称") ("PL_DIAMETER" "胸径或地径") ("PL_SPEC" "规格编号"))
     (if (not (entmake (list '(0 . "ATTDEF") '(8 . "0") '(62 . 7) '(10 0.0 0.0 0.0)
@@ -298,7 +298,7 @@
       (setq child (entnext e))
       (while (and child (/= (cdr (assoc 0 (entget child))) "SEQEND"))
         (setq attrs (cons (entget child) attrs) child (entnext child)))))
-  (list p units opts ed attrs))
+  (list p units (pl:annotation-units e) opts ed attrs))
 (defun pl:symbol-attribute (tag p pos height opts / point text hidden)
   (cond
     ((= tag "PL_NAME") (setq text (pl:get 'name p)
@@ -319,7 +319,7 @@
       (progn
       (setq obj (vlax-ename->vla-object e) attrs (vlax-invoke obj 'GetAttributes)
             scale (if (= (cdr (assoc 67 (entget e))) 1) 1.0 (pl:get 'scale opts))
-            height (pl:paper-height (pl:get 'paper_height opts) scale units)
+            height (pl:plot-text-height e)
             pos (trans (cdr (assoc 10 (entget e))) e 0)
             no (pl:get 'spec_no p))
       (foreach attr attrs
@@ -525,7 +525,8 @@
   (foreach row pl:*project-visible*
     (add_list (pl:project-list-row row)))
   (end_list) (setq pl:*index* 0)
-  (foreach key '("edit" "clone" "update" "accept" "place") (mode_tile key (if pl:*project-visible* 0 1)))
+  (foreach key '("edit" "clone" "accept" "place") (mode_tile key (if pl:*project-visible* 0 1)))
+  (mode_tile "update" 0)
   (if pl:*project-visible* (set_tile "plants" "0")))
 (defun pl:calibrate-work (/ first second actual units)
   (princ "\n选底图上已知真实长度的两点；例如标注为500cm的边，不用文字高度推断单位。")

@@ -12,8 +12,8 @@ namespace PlantCADBridge {
   internal readonly TextBox Search=new TextBox();
   readonly List<Button> selectedButtons=new List<Button>();
   internal int ActionCode,SelectedIndex=-1;
-  internal PlantProjectDialog(List<string[]> rows,List<string> kinds,int index){
-   source=rows;Text="CountingTrees（数树） - 项目植物与规格";Font=new Font("Microsoft YaHei",9F);
+  internal PlantProjectDialog(List<string[]> rows,List<string> kinds,int index,bool pickOnly=false){
+   source=rows;Text=pickOnly?"CountingTrees（数树） - 请选择同名植物的具体规格":"CountingTrees（数树） - 项目植物与规格";Font=new Font("Microsoft YaHei",9F);
    AutoScaleMode=AutoScaleMode.Dpi;FormBorderStyle=FormBorderStyle.Sizable;MaximizeBox=true;MinimizeBox=false;
    ShowInTaskbar=false;StartPosition=FormStartPosition.CenterParent;MinimumSize=new Size(780,390);
    Size=previousSize;
@@ -42,16 +42,20 @@ namespace PlantCADBridge {
    for(int c=0;c<headers.Length;c++){int n=Grid.Columns.Add("column"+c,headers[c]);Grid.Columns[n].FillWeight=weights[c];Grid.Columns[n].MinimumWidth=c==2?120:65;Grid.Columns[n].SortMode=DataGridViewColumnSortMode.Automatic;}
    layout.Controls.Add(Grid,0,2);
    var actions=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,Margin=new Padding(0,7,0,0)};
-   actions.Controls.Add(Action("从品种库建规格",2,false));actions.Controls.Add(Action("手动新增",5,false));
-   actions.Controls.Add(Action("复制新规格",6,true));var edit=Action("修改规格",3,true);actions.Controls.Add(edit);actions.Controls.Add(Action("更新已有植物",4,true));
+   Button edit;
+   if(pickOnly){edit=Action("使用选中规格",1,true);actions.Controls.Add(edit);}
+   else{
+    actions.Controls.Add(Action("从品种库建规格",2,false));actions.Controls.Add(Action("手动新增",5,false));
+    actions.Controls.Add(Action("复制新规格",6,true));edit=Action("修改规格",3,true);actions.Controls.Add(edit);actions.Controls.Add(Action("更新已有植物",4,false));
+   }
    layout.Controls.Add(actions,0,3);
-   layout.Controls.Add(new Label{Text="修改项目规格会同步图中对象及所有关联表；双击单株只修改该株。",AutoSize=true,Margin=new Padding(0,5,0,5)},0,4);
+   layout.Controls.Add(new Label{Text=pickOnly?"名称对应多个规格，请选择图中植物使用的规格；取消则跳过该名称。":"更新已有植物：从图中采集图块、植物文字或灌木标注；修改规格会同步关联表。",AutoSize=true,Margin=new Padding(0,5,0,5)},0,4);
    var finish=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,Margin=new Padding(0)};
-   finish.Controls.Add(Action("设为当前并开始布置",7,true));finish.Controls.Add(Action("设为当前规格",1,true));
+   if(!pickOnly){finish.Controls.Add(Action("设为当前并开始布置",7,true));finish.Controls.Add(Action("设为当前规格",1,true));}
    var close=new Button{Text="关闭",AutoSize=true,MinimumSize=new Size(110,30),DialogResult=DialogResult.Cancel};finish.Controls.Add(close);layout.Controls.Add(finish,0,5);
    AcceptButton=edit;CancelButton=close;
    Category.SelectedIndexChanged+=(s,e)=>Filter();Search.TextChanged+=(s,e)=>Filter();find.Click+=(s,e)=>Filter();
-   Grid.SelectionChanged+=(s,e)=>UpdateActions();Grid.CellDoubleClick+=(s,e)=>{if(e.RowIndex>=0)Choose(3);};
+   Grid.SelectionChanged+=(s,e)=>UpdateActions();Grid.CellDoubleClick+=(s,e)=>{if(e.RowIndex>=0)Choose(pickOnly?1:3);};
    Category.SelectedIndex=0;
    if(index>=0&&index<source.Count)foreach(DataGridViewRow row in Grid.Rows)if((int)row.Tag==index){Grid.CurrentCell=row.Cells[0];break;}
    FormClosing+=(s,e)=>{previousSize=WindowState==FormWindowState.Normal?Size:RestoreBounds.Size;};
@@ -72,7 +76,7 @@ namespace PlantCADBridge {
    UpdateActions();
   }
   internal void Choose(int code){
-   if(code!=2&&code!=5&&Grid.CurrentRow==null)return;
+   if(code!=2&&code!=4&&code!=5&&Grid.CurrentRow==null)return;
    ActionCode=code;SelectedIndex=Grid.CurrentRow==null?-1:(int)Grid.CurrentRow.Tag;DialogResult=DialogResult.OK;Close();
   }
  }

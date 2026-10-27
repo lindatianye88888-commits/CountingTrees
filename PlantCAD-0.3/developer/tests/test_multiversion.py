@@ -46,7 +46,8 @@ class MultiVersionRouting(unittest.TestCase):
 
     def test_installer_contains_only_paired_runtime_files_and_all_six_modules(self):
         modules={target['module'] for target in TARGETS}
-        self.assertTrue(modules<=set(install_panel.FILES));self.assertEqual(len(install_panel.FILES),14)
+        self.assertTrue(modules<=set(install_panel.FILES));self.assertEqual(len(install_panel.FILES),15)
+        self.assertIn('plantcad-project-import.lsp',install_panel.FILES)
         self.assertEqual(len(install_panel.FILES),len(set(install_panel.FILES)))
         for name in install_panel.FILES:
             path=Path(name);self.assertFalse(path.is_absolute());self.assertNotIn('..',path.parts)

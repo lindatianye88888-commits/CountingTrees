@@ -5,20 +5,21 @@
 !/README.md
 !/开始使用.md
 !/PlantCAD-0.3/
+!/PlantCAD-0.3.23-CAD2014-TArch9/
 !/releases/
 
 # Machine state, generated client paths and private CAD test evidence.
 **/__pycache__/
 **/*.py[cod]
-/PlantCAD-0.3/install-state.json
+**/install-state.json
 **/queue-root.json
-/PlantCAD-0.3/bridge/clients/
-/PlantCAD-0.3/bridge/runtime/
-/PlantCAD-0.3/bridge/host-output/
-/PlantCAD-0.3/developer/bin/
-/PlantCAD-0.3/developer/backups/
-/PlantCAD-0.3/developer/fixtures/
-/PlantCAD-0.3/developer/reports/
+**/bridge/clients/
+**/bridge/runtime/
+**/bridge/host-output/
+**/developer/bin/
+**/developer/backups/
+**/developer/fixtures/
+**/developer/reports/
 **/*verification.json
 
 # Credentials and third-party SDK/reference binaries are never distributed.

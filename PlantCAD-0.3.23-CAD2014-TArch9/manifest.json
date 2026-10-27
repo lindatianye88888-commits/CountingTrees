@@ -1,0 +1,80 @@
+{
+  "name": "CountingTrees",
+  "name_zh": "数树",
+  "display_name": "CountingTrees（数树）",
+  "release": "0.3",
+  "date": "2026-10-22",
+  "revision": "0.3.23",
+  "target": "Windows AutoCAD 2014 x64, including Tianzheng TArch9",
+  "host_tested": false,
+  "host_test_scope": "not full GUI/print or third-party object editing acceptance",
+  "automated_rule_tests": 260,
+  "test_groups": {
+    "plant_rules": 250,
+    "mcp_protocol": 10
+  },
+  "catalogue_entries": 468,
+  "runtime_encoding": "CP936/GBK",
+  "files": [
+    {
+      "name": "plantcad-ai.lsp",
+      "size": 18485,
+      "sha256": "3c199c8c3b7017cc5e487ca93c0a4107098ad5da77c4a1d158015f46c603bbca",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-check.lsp",
+      "size": 2303,
+      "sha256": "6feeda3998b7fe59f084a659dd559c48c7517a7652cd84d393fab4b093173ccd",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-core.lsp",
+      "size": 16919,
+      "sha256": "db133b1646b51cee10fb3f748dc096b6c8c29ad9f8b73847c19932cc5a60bfe7",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-design.lsp",
+      "size": 31860,
+      "sha256": "e73d53189854f719f55ba40cf5f07f703f704a86214efb2b6982ef7fab2dae63",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-ui.lsp",
+      "size": 7511,
+      "sha256": "c73c7c7647874d1f17ddb72f2d30d0d8fc52242963bd6c5f2333485b86b5db3e",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad-workflow.lsp",
+      "size": 70458,
+      "sha256": "fab84a738ed54bc99855991503e9d1bad0801aba7e7ae03971b9b7bf57df933b",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad.dcl",
+      "size": 8640,
+      "sha256": "22ce53a5335b1d53eb0f37f8d4dddf2ddee83e5e9e68911aadc97e01df1f1a48",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcad.lsp",
+      "size": 36616,
+      "sha256": "0dbbb6545f3f0c8cc5986c3fe8decee0e95e7bb455e7a6ccf3853361cea6f997",
+      "encoding": "GBK"
+    },
+    {
+      "name": "plantcatalog.tsv",
+      "size": 83024,
+      "sha256": "d6402e43388c723d3d4eadeabe601fe5aa537c7dbe9a14e2a31c707ae508c4bb",
+      "encoding": "GBK"
+    },
+    {
+      "name": "bridge/PlantCADBridge.dll",
+      "size": 123904,
+      "sha256": "4652e5f4277e1a57bf2bf8649146bc94a3e759f4c350076f02867f8a021202c8",
+      "encoding": "binary"
+    }
+  ]
+}

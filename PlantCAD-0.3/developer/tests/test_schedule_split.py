@@ -17,6 +17,7 @@ class SplitSchedules(fixtures.Rules):
     def test_categories_partition_all_kinds_without_changing_records(self):
         records=[[self.put('kind',k,self.put('id',str(k))),k+1] for k in range(6)]
         self.rt.builtins['pl:output-counts']=lambda scope:[[None,*row] for row in records]
+        self.rt.builtins['pl:output-table-objects']=lambda scope:[]
         groups=self.rt.call('pl:table-split-groups',records,'category',self.scope())
         self.assertEqual(len(groups),3)
         partitions=[self.rt.call('pl:output-table-records','count',g[1]) for g in groups]
@@ -29,6 +30,7 @@ class SplitSchedules(fixtures.Rules):
         c=self.put('species_id','SPECIES_2',self.put('name',gbk('海桐')))
         records=[[a,2],[b,4],[c,1]]
         self.rt.builtins['pl:output-counts']=lambda scope:[[None,*row] for row in records]
+        self.rt.builtins['pl:output-table-objects']=lambda scope:[]
         groups=self.rt.call('pl:table-split-groups',records,'species',self.scope(handles=['A','B']))
         self.assertEqual(len(groups),2)
         result=self.rt.call('pl:output-table-records','count',groups[0][1])

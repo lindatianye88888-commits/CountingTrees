@@ -43,6 +43,7 @@ def build(cad_dir=None,test_reader=False,target='2014'):
     sources.append(ROOT/'src/PlantAreaManual.cs')
     sources.append(ROOT/'src/PlantAreaLabelEdit.cs')
     sources.extend([ROOT/'src/PlantProjectDialog.cs',ROOT/'src/PlantProjectBridge.cs'])
+    sources.extend([ROOT/'src/PlantAnnotationParser.cs',ROOT/'src/PlantProjectImport.cs'])
     digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
     inputs={str(p.name):digest(p) for p in sources+references+[csc]}
     inputs['target']=target

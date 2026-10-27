@@ -26,6 +26,13 @@ class ProjectDialogRenderer {
   using(var f=new PlantProjectDialog(new List<string[]>(),kinds,0)){
    f.Show();Application.DoEvents();Check(f.Grid.Rows.Count==0,"Empty project failed");f.Choose(3);Check(f.Visible,"Empty edit closed the dialog");f.Choose(5);Check(f.ActionCode==5,"Cannot add to empty project");
   }
+  using(var f=new PlantProjectDialog(new List<string[]>(),kinds,0)){
+   f.Show();Application.DoEvents();f.Choose(4);Check(f.ActionCode==4&&f.SelectedIndex==-1,"Cannot collect drawing plants into an empty project");
+  }
+  using(var f=new PlantProjectDialog(rows,kinds,2,true)){
+   f.Show();Application.DoEvents();Check(f.Text.Contains("具体规格"),"Ambiguous species picker not identified");
+   f.Choose(1);Check(f.ActionCode==1&&f.SelectedIndex==2,"Ambiguous species picker lost selected specification");
+  }
   File.WriteAllText(Path.Combine(args[0],"project-dialog-render.txt"),"PASS "+checks);
  }
 }

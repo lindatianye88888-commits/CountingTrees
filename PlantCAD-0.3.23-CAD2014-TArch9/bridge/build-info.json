@@ -1,0 +1,25 @@
+{
+  "target": "AutoCAD 2014 x64",
+  "inputs": {
+    "PlantCADBridge.cs": "e0b5f4390e0b8983146474b40819f9e24fe99b3b11b93d3d60382fec32011c96",
+    "LispValueReader.cs": "16bfa6696e47b338af732053e0d29bcdeda12c4f92638396a2fb290acaaf7a6e",
+    "PlantCADPanel.cs": "72aa3ffda9049bbdda54404fa1358b7ceea22ddc84f33667f1097c1f844eac66",
+    "PlantCADWorkbench.cs": "6ccf0a6a26ce555591c933d9150cf9c08efd36e97dbbc4a261541207c3239d91",
+    "PlantAreaGeometry.cs": "848299e8a232461f6ceb229492683e23a9380fb375aa76d4d3aba8347c089c9d",
+    "PlantAreaRepair.cs": "e3cf02eb4b05440a7d85fdd6bb37e6a243db255e105ac5dc4a1f2fc10b69aae9",
+    "PlantAreaInteraction.cs": "7e17e335eeedc6a432b92225e4618dae193a1eff765f8e42956b41159f990d37",
+    "PlantAreaNormalization.cs": "dadfdef14f0d26b9ad3be1451b693fae6e65fd7cd44cc82d2ec22903b3ebd8e8",
+    "PlantInstanceEditing.cs": "79cbcd3f69b277668766cbde200e676512a820e7bf27aa962ff5e74cffe5db02",
+    "PlantOutput.cs": "ea23b4626574a9a8503570e7afd66a35fa95ef0304e03ce11a2e6f92e41f030a",
+    "PlantAreaLeader.cs": "351434bfb49d39d5c7449c5bf97bf531fd03a116b3210c12ec0c1ea52cc714dc",
+    "PlantAreaManual.cs": "6a4837651a0871a4fe2090153f48b871097edc5d331f9089a5186dacff93a929",
+    "PlantAreaLabelEdit.cs": "f5f8eec1579c3099e73fa1f790a948c75fca6c23cf8b5239cc9354e825940385",
+    "PlantProjectDialog.cs": "819ff9c30d430cd1a150c20e1fc231057d7c4d800d9d91f8c99521b9ee21b382",
+    "PlantProjectBridge.cs": "e110d15bd744311782d50380b32d98fce345cf3bc89dbb233e9927e02db8030a",
+    "acmgd.dll": "ca4e96ff3bb480e3e9bb369f5ae9a6895e5660c16aff35dd9c4a9b6347494261",
+    "acdbmgd.dll": "c728d4baa4f718ce53ef1c3f4973f1c1ce28ee5d9e08f2605ea1ca54c51ed2a0",
+    "accoremgd.dll": "bdc0a4348d569719e90bb4228dac33b30045a9b0a2f6da0acd13ebd7d34aeeb2",
+    "csc.exe": "aae1db57f898ca8bda18590c56f86ced6d0ead80c22033b76fdfe9119706f116"
+  },
+  "sha256": "7d91ebc9e024e0fe72be32fd597c94cb5fc562c154f3c4e60bc1d1fbc8099f8a"
+}

@@ -4,7 +4,7 @@
 
 (setq pl:*app* "PLANTCAD01" pl:*dict* "PLANTCAD01_DATA" pl:*require-crown* nil)
 
-(defun pl:locate-core (/ path design ai ui workflow)
+(defun pl:locate-core (/ path design ai ui workflow project-import)
   (setq path (if (and (boundp 'pl:*dir*) pl:*dir*
     (findfile (strcat pl:*dir* "/plantcad-design.lsp")))
       (findfile (strcat pl:*dir* "/plantcad-core.lsp"))
@@ -13,8 +13,9 @@
   (if path
     (progn
       (setq pl:*dir* (vl-filename-directory path) design (strcat pl:*dir* "/plantcad-design.lsp") ai (strcat pl:*dir* "/plantcad-ai.lsp") ui (strcat pl:*dir* "/plantcad-ui.lsp") workflow (strcat pl:*dir* "/plantcad-workflow.lsp"))
-      (if (and (findfile design) (findfile ai) (findfile ui) (findfile workflow)) (progn (load path) (load design) (load ai) (load ui) (load workflow) T)
-        (progn (princ "\n缺少配套的 design、ai、ui 或 workflow 模块，请完整解压0.3安装包。") nil)))
+      (setq project-import (strcat pl:*dir* "/plantcad-project-import.lsp"))
+      (if (and (findfile design) (findfile ai) (findfile ui) (findfile workflow) (findfile project-import)) (progn (load path) (load design) (load ai) (load ui) (load workflow) (load project-import) T)
+        (progn (princ "\n缺少配套的 design、ai、ui、workflow 或 project-import 模块，请完整解压0.3安装包。") nil)))
     (progn (princ "\n未加载核心文件。") nil)))
 
 ;;; Keep other add-ons' short command names; full names always use PLANTCAD.
@@ -70,14 +71,14 @@
   (vlax-ldata-get pl:*dict* key default))
 
 (defun pl:db-put (key value)
-  (if (member key '("PLANTS" "PLOT_OPTIONS")) (setq pl:*drawing-changed* T))
+  (if (member key '("PLANTS" "PLOT_OPTIONS" "UNIT" "UNITS_PER_M")) (setq pl:*drawing-changed* T))
   (vlax-ldata-put pl:*dict* key value))
 
 (defun pl:data-get (e key)
   (vlax-ldata-get (vlax-ename->vla-object e) key nil))
 
 (defun pl:data-put (e key value)
-  (if (member key '("PLANT" "AREA_PLANT" "UNITS")) (setq pl:*drawing-changed* T))
+  (if (member key '("PLANT" "AREA_PLANT" "UNITS" "PROJECT_PLANT" "PROJECT_COUNT")) (setq pl:*drawing-changed* T))
   (vlax-ldata-put (vlax-ename->vla-object e) key value))
 
 (defun pl:defs (/ result p)
@@ -289,24 +290,34 @@
   (if msg (progn (set_tile "error" msg) (if (<= (pl:get 'crown p) 0) (mode_tile "crown" 2)))
     (progn (setq pl:*edit-result* p) (done_dialog 1))))
 
+(defun pl:edit-dialog-start (p)
+      ;; Bind cancellation before populating lists or reading drawing data.
+      (action_tile "cancel" "(setq pl:*edit-result* nil) (done_dialog 0)")
+      (action_tile "accept" "(pl:accept-edit)")
+      (action_tile "style" "(pl:dialog-preview $value)")
+      (action_tile "kind" "(pl:edit-kind-change $value)")
+      (action_tile "plant_choice" "(pl:edit-name-selected $value)")
+      (pl:fill-edit p)
+      (if (and pl:*require-crown* (<= (pl:get 'crown p) 0))
+        (progn (set_tile "error" "请先补填当前植物的实际冠幅（cm），再开始布置。") (mode_tile "crown" 2)))
+      (start_dialog))
+
 (defun pl:edit-dialog (p / id status)
   (setq p (pl:upgrade-plant p) id (pl:dialog "pl_edit") pl:*edit* p pl:*edit-result* nil)
   (if id
     (progn
-      (pl:fill-edit p)
-      (action_tile "style" "(pl:dialog-preview $value)")
-      (action_tile "kind" "(pl:edit-kind-change $value)")
-      (action_tile "plant_choice" "(pl:edit-name-selected $value)")
-      (if (and pl:*require-crown* (<= (pl:get 'crown p) 0))
-        (progn (set_tile "error" "请先补填当前植物的实际冠幅（cm），再开始布置。") (mode_tile "crown" 2)))
-      (action_tile "accept" "(pl:accept-edit)")
-      (action_tile "cancel" "(done_dialog 0)")
-      (setq status (start_dialog)) (unload_dialog id)
+      ;; NEW_DIALOG already creates a native window. An initialization error
+      ;; must dismiss it before the command's outer error handler resumes.
+      (setq status (vl-catch-all-apply 'pl:edit-dialog-start (list p)))
+      (if (vl-catch-all-error-p status)
+        (progn (setq pl:*edit-result* nil) (vl-catch-all-apply 'term_dialog nil)))
+      (unload_dialog id)
+      (if (vl-catch-all-error-p status) (pl:rethrow status))
       (if (= status 1)
         (progn
           (if (/= (pl:get 'spec_no p) (pl:get 'spec_no pl:*edit-result*))
             (princ (strcat "\n当前规格编号：" (pl:get 'spec_no pl:*edit-result*))))
-          pl:*edit-result*) nil))))
+          pl:*edit-result*) (progn (setq pl:*edit-result* nil) nil)))))
 
 (defun pl:custom-error (name / block obj ed)
   (setq block (tblsearch "BLOCK" name))
@@ -605,7 +616,7 @@
     (if (setq quantity (pl:quantity-data e))
       (setq rows (pl:add-quantity (car quantity) (cadr quantity) rows)))) (pl:sort-count-rows rows))
 
-(defun pl:count-work (/ scope trees rows row p total area handles skipped quantity)
+(defun pl:count-work (/ scope trees rows row p total area handles skipped pending quantity)
   (pl:import-area-label-edits)
   (setq scope (if (boundp 'pl:*count-scope*) pl:*count-scope* nil) pl:*count-scope* nil)
   (if (not scope)
@@ -613,7 +624,7 @@
       (initget "Selected Model")
       (setq scope (getkword "\n统计 [所选(Selected)/全部模型空间(Model)] <Selected>："))))
   (setq trees (if (= scope "Model") (pl:statistics-model) (pl:statistics-select))
-        rows (pl:count-rows trees) total 0 area 0.0 skipped 0)
+        rows (pl:count-rows trees) total 0 area 0.0 skipped 0 pending 0)
   (princ "\n编号 | 植物名称 | 胸径cm | 地径cm | 高度cm | 冠幅cm | 数量 | 单位")
   (foreach row rows
     (setq p (cadr row))
@@ -624,11 +635,13 @@
       (pl:dimension-text 'height p) " | " (pl:dimension-text 'crown p) " | "
       (pl:quantity-text p (caddr row)) " | " (pl:get 'quantity_unit p))))
   (foreach row trees
-    (if (pl:quantity-data row)
-      (setq handles (append handles (list (cdr (assoc 5 (entget row))))))
+    (if (or (pl:quantity-data row) (equal (pl:role row) "PROJECT_SOURCE"))
+      (progn
+        (setq handles (append handles (list (cdr (assoc 5 (entget row))))))
+        (if (not (pl:quantity-data row)) (setq pending (1+ pending))))
       (setq skipped (1+ skipped))))
   (princ (strcat "\n单株/丛图例：" (itoa total) " 个；种植范围：" (pl:area-text area)
-    " 平方米；失效范围跳过 " (itoa skipped) " 个。"))
+    " 平方米；仅名称待关联 " (itoa pending) " 个；失效范围跳过 " (itoa skipped) " 个。"))
   (princ "\n统计完成，可指定位置生成带图例、编号的关联表。")
   (pl:db-put "LAST_COUNT_SCOPE" (list (cons 'scope (if (= scope "Model") "model" "handles")) (cons 'handles handles)))
   (pl:db-put "LAST_COUNT" rows) rows)
@@ -655,11 +668,7 @@
       (pl:dimension-text 'height p) "," (pl:dimension-text 'crown p) ","
       (pl:quantity-text p (caddr row)) "," (pl:csv-cell (pl:get 'quantity_unit p))) file)))
 
-(defun pl:table-work (/ rows)
-  (setq pl:*count-scope* "Model")
-  (setq rows (pl:count-work))
-  (if rows (pl:output-table-create "PL_表格_苗木" "count" "苗木数量总表"))
-)
+(defun pl:table-work () (pl:count-all-work))
 (defun pl:legacy-table-work (/ rows point height table row col i p values)
   (pl:init-layers)
   (if (not (pl:layer-open "PL_表格_苗木")) (pl:fail "表格图层已锁定，请先解锁。"))

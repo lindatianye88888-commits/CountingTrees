@@ -23,6 +23,12 @@ class ProjectPicker(unittest.TestCase):
         self.assertEqual(self.rt.call('pl:project-dialog',0),5)
         self.assertEqual(self.rt.env[Sym('pl:*index*')],0)
 
+    def test_empty_project_can_collect_drawing_plants_without_selected_spec(self):
+        self.prepare(None);self.rows=[];answers=iter([[4,-1],[0,-1]]);collected=[]
+        self.rt.builtins['pl:native-project-dialog']=lambda *args:next(answers)
+        self.rt.builtins['pl:collect-project-work']=lambda:collected.append('drawing')
+        self.rt.call('pl:design-library');self.assertEqual(collected,['drawing'])
+
     def test_close_does_not_save_or_change_current_plant(self):
         self.prepare([0,1]);writes=[]
         self.rt.builtins['pl:db-put']=lambda *args:writes.append(args)

@@ -48,6 +48,7 @@ namespace PlantCADBridge {
       if(Double.IsNaN(landingSpan)||Double.IsInfinity(landingSpan)||landingSpan<=1e-8)throw new ArgumentException("横线尾端须位于折点的左侧或右侧。");
      }
      Point3d location=created?point:leader.TextLocation;
+     leader.TextStyleId=AreaLeaderTextStyle(db,tr);
      leader.ArrowSize=height*0.3;if(!pickedLanding)leader.DoglegLength=height*2;
      leader.LayerId=layerId;leader.ColorIndex=256;
      leader.LeaderLineColor=Autodesk.AutoCAD.Colors.Color.FromColorIndex(Autodesk.AutoCAD.Colors.ColorMethod.ByLayer,256);
@@ -88,7 +89,11 @@ namespace PlantCADBridge {
    // Freeze the first chosen font for this drawing's output annotations. A
    // later TEXTSTYLE switch must not change the appearance of the next bed.
    const string name="PLANTCAD_面积标注";var styles=(TextStyleTable)tr.GetObject(db.TextStyleTableId,OpenMode.ForRead);
-   if(styles.Has(name))return styles[name];
+   if(styles.Has(name)){
+    var owned=(TextStyleTableRecord)tr.GetObject(styles[name],OpenMode.ForRead);
+    if(owned.TextSize!=0){owned.UpgradeOpen();owned.TextSize=0;}
+    return owned.ObjectId;
+   }
    var source=(TextStyleTableRecord)tr.GetObject(db.Textstyle,OpenMode.ForRead);
    var copy=(TextStyleTableRecord)source.Clone();copy.Name=name;copy.TextSize=0;
    styles.UpgradeOpen();ObjectId id=styles.Add(copy);tr.AddNewlyCreatedDBObject(copy,true);return id;
@@ -101,13 +106,9 @@ namespace PlantCADBridge {
    styles.UpgradeOpen();ObjectId id=styles.SetAt(name,copy);tr.AddNewlyCreatedDBObject(copy,true);return id;
   }
   static void SetAreaLanding(MLeader leader,int index,int line,Point3d elbow,Vector3d direction,double span,double height){
-   // Extended native landings include the actual text width. Reserve only the
-   // remaining distance for the dogleg, and keep the designer's two endpoints.
+   // Font size comes from plot settings. Extend a short landing to fit the text;
+   // keep the picked elbow/direction and any longer landing chosen by the designer.
    double width;
-   using(var text=leader.MText){
-    width=text.ActualWidth;
-    if(width>span){height*=span/width;text.TextHeight=height;leader.MText=text;}
-   }
    leader.TextHeight=height;leader.ArrowSize=height*.3;
    using(var text=leader.MText)width=text.ActualWidth;
    leader.SetDogleg(index,direction);leader.SetDoglegLength(index,Math.Max(0,span-width));

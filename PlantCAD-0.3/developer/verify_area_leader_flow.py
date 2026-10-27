@@ -72,7 +72,7 @@ def main():
  (not (null (vl-string-search "\\P" (pl:area-annotation-raw pc:label))))
  (equal (nth 4 pc:style) (nth 4 pc:after) 1e-8)
  (equal (nth 5 pc:style) (nth 5 pc:after) 1e-8)
- (equal (pl:data-get pc:label "OUTPUT_STYLE_VERSION") 2))))
+ (equal (pl:data-get pc:label "OUTPUT_STYLE_VERSION") 3))))
 (pl:db-put "PC_PICKED_LABEL" (cdr (assoc 5 (entget pc:label))))
 (pl:db-put "PC_PICKED_AREA" (cdr (assoc 5 (entget pc:area))))
 '''
