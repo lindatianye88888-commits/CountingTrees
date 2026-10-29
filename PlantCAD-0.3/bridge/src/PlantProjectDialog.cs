@@ -47,9 +47,10 @@ namespace PlantCADBridge {
    else{
     actions.Controls.Add(Action("从品种库建规格",2,false));actions.Controls.Add(Action("手动新增",5,false));
     actions.Controls.Add(Action("复制新规格",6,true));edit=Action("修改规格",3,true);actions.Controls.Add(edit);actions.Controls.Add(Action("更新已有植物",4,false));
+    actions.Controls.Add(Action("删除规格",8,true));
    }
    layout.Controls.Add(actions,0,3);
-   layout.Controls.Add(new Label{Text=pickOnly?"名称对应多个规格，请选择图中植物使用的规格；取消则跳过该名称。":"更新已有植物：从图中采集图块、植物文字或灌木标注；修改规格会同步关联表。",AutoSize=true,Margin=new Padding(0,5,0,5)},0,4);
+   layout.Controls.Add(new Label{Text=pickOnly?"名称对应多个规格，请选择图中植物使用的规格；取消则跳过该名称。":"修改规格会同步关联表；删除规格会删除对应图上植物、标注及表中记录，确认后执行。",AutoSize=true,Margin=new Padding(0,5,0,5)},0,4);
    var finish=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,Margin=new Padding(0)};
    if(!pickOnly){finish.Controls.Add(Action("设为当前并开始布置",7,true));finish.Controls.Add(Action("设为当前规格",1,true));}
    var close=new Button{Text="关闭",AutoSize=true,MinimumSize=new Size(110,30),DialogResult=DialogResult.Cancel};finish.Controls.Add(close);layout.Controls.Add(finish,0,5);

@@ -118,6 +118,7 @@
 (defun pl:layers ()
   '(("PL_树木_圆圈" 3 T) ("PL_树木_简化" 3 T)
     ("PL_灌木球_圆圈" 3 T) ("PL_灌木球_简化" 3 T) ("PL_灌木球_标注" 7 T)
+    ("PL_竹类_圆圈" 3 T) ("PL_竹类_简化" 3 T) ("PL_竹类_标注" 7 T)
     ("PL_花境_图例" 4 T) ("PL_花境_填充" 4 T) ("PL_花境_标注" 7 T)
     ("PL_灌木_标注" 7 T) ("PL_草地_标注" 7 T) ("PL_辅助_填充边界" 8 nil)
     ("PL_灌木_原始线" 2 T) ("PL_灌木_计算边界" 2 T)
@@ -361,6 +362,7 @@
 
 (defun pl:tree-layer (p)
   (cond ((= (pl:get 'kind p) 3) (if (= (pl:get 'style p) 0) "PL_灌木球_圆圈" "PL_灌木球_简化"))
+    ((= (pl:get 'kind p) 6) (if (= (pl:get 'style p) 0) "PL_竹类_圆圈" "PL_竹类_简化"))
     ((= (pl:get 'kind p) 4) "PL_花境_图例")
     (T (if (= (pl:get 'style p) 0) "PL_树木_圆圈" "PL_树木_简化"))))
 
@@ -485,7 +487,7 @@
   (setq units (pl:units))
   (setq opts (pl:db-get "LABEL_OPTIONS"
     (list (cons 'mode 1) (cons 'prefix 0) (cons 'units 0)
-          (cons 'height (pl:paper-height 2.5 (pl:get 'scale (pl:db-get "PLOT_OPTIONS" '((scale . 100.0)))) units)) (cons 'leader 1))))
+          (cons 'height (pl:paper-height (pl:get 'paper_height (pl:plot-options)) (pl:get 'scale (pl:plot-options)) units)) (cons 'leader 1))))
   (setq id (pl:dialog "pl_label") pl:*label-result* nil)
   (if id
     (progn
@@ -677,9 +679,9 @@
     (progn
       (initget 6)
       (setq height (getreal (strcat "\n表格字高 / cm <"
-                    (pl:num (/ (* (pl:paper-height 2.5 (pl:get 'scale (pl:db-get "PLOT_OPTIONS" '((scale . 100.0)))) (pl:units)) 100.0) (pl:units))) ">：")))
+                    (pl:num (/ (* (pl:paper-height (pl:get 'paper_height (pl:plot-options)) (pl:get 'scale (pl:plot-options)) (pl:units)) 100.0) (pl:units))) ">：")))
       (if height (setq height (* (/ height 100.0) (pl:units)))
-        (setq height (pl:paper-height 2.5 (pl:get 'scale (pl:db-get "PLOT_OPTIONS" '((scale . 100.0)))) (pl:units))))
+        (setq height (pl:paper-height (pl:get 'paper_height (pl:plot-options)) (pl:get 'scale (pl:plot-options)) (pl:units))))
       (if (setq point (getpoint "\n苗木数量表插入点："))
         (progn
           (setq table (vla-AddTable (pl:space) (vlax-3d-point (trans point 1 0))

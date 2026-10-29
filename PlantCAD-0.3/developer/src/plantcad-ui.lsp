@@ -1,7 +1,7 @@
 ;;; PlantCAD workbench state and drawing interaction.
 (defun pl:ui-state (/ p opts units issue)
   (setq p (pl:current) units (pl:units)
-    opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5))))
+    opts (pl:plot-options))
   (setq issue (cond ((not p) "已有边线可直接用“布置→灌木线自动识别面积并标注”；布置植物再选树种。")
     ((and (not (pl:no-size-kind-p (pl:get 'kind p))) (<= (pl:get 'crown p) 0)) "当前规格尚缺冠幅，点击“开始布置”直接补填。")
     ((not units) "请先确认底图单位和出图比例。")
@@ -77,7 +77,7 @@
 (defun pl:pick-placement (p units / opts scale height result point)
   (if (and (boundp 'pl:*native-ui*) pl:*native-ui*)
     (progn
-      (setq opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5)))
+      (setq opts (pl:plot-options)
         scale (if (and (= (getvar "TILEMODE") 0) (= (getvar "CVPORT") 1)) 1.0 (pl:get 'scale opts))
         height (pl:paper-height (pl:get 'paper_height opts) scale units))
       (setq result (pl:preview-point (pl:block-name p) (pl:block-scale p units) height (pl:get 'name p)))

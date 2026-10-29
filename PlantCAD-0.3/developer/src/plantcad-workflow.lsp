@@ -474,8 +474,8 @@
   (if (not (pl:get 'height opts))
     (progn
       (if (not (pl:require-units)) (pl:fail "图纸单位未确认。"))
-      (setq opts (pl:put 'height (pl:paper-height 2.5
-        (pl:get 'scale (pl:db-get "PLOT_OPTIONS" '((scale . 100.0)))) (pl:units)) opts))))
+      (setq opts (pl:put 'height (pl:paper-height (pl:get 'paper_height (pl:plot-options))
+        (pl:get 'scale (pl:plot-options)) (pl:units)) opts))))
   (pl:db-put "LABEL_OPTIONS" opts)
   (pl:label-work))
 
@@ -496,7 +496,7 @@
   (if (not (and (numberp units) (> units 0))) (setq units (pl:data-get e "UNITS")))
   (if (not (and (numberp units) (> units 0))) (pl:fail "请先在设置中确认图纸单位，再刷新标注。")) units)
 (defun pl:plot-text-height (e / plot)
-  (setq plot (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5))))
+  (setq plot (pl:plot-options))
   (pl:paper-height (pl:get 'paper_height plot)
     (if (= (cdr (assoc 67 (entget e))) 1) 1.0 (pl:get 'scale plot)) (pl:annotation-units e)))
 
@@ -629,9 +629,11 @@
       (setq pl:*edit* (pl:put 'species_id (pl:get 'species_id p) pl:*edit*))
       (set_tile "name" (pl:get 'name p))
       ;; Keep an explicitly chosen shrub-ball/flower-border/lawn role when changing species.
-      (if (< (atoi (get_tile "kind")) 3) (set_tile "kind" (itoa (pl:get 'kind p)))))))
+      (if (not (member (atoi (get_tile "kind")) '(3 4 5)))
+        (set_tile "kind" (itoa (pl:get 'kind p)))))))
 (defun pl:plant-label-layer (p)
   (cond ((= (pl:get 'kind p) 3) "PL_灌木球_标注") ((= (pl:get 'kind p) 4) "PL_花境_标注")
+    ((= (pl:get 'kind p) 6) "PL_竹类_标注")
     ((member (pl:get 'kind p) '(2 5)) "PL_草地_标注") ((= (pl:get 'kind p) 1) "PL_灌木_标注")
     (T "PL_标注_树木")))
 (defun pl:area-label-layer (e / p)
@@ -951,9 +953,9 @@
 (defun pl:table-display-row (row)
   (append (list (car row) (nth 9 row)) (reverse (cdr (reverse (cdr row))))))
 (defun pl:table-category (p)
-  (cond ((= (pl:get 'kind p) 0) "trees") ((= (pl:get 'kind p) 3) "balls") (T "cover")))
+  (cond ((member (pl:get 'kind p) '(0 6)) "trees") ((= (pl:get 'kind p) 3) "balls") (T "cover")))
 (defun pl:table-category-title (group)
-  (cond ((equal group "trees") "乔木") ((equal group "balls") "灌木球") (T "灌木地被（含花境、草坪）")))
+  (cond ((equal group "trees") "乔木、竹类") ((equal group "balls") "灌木球") (T "灌木地被（含花境、草坪）")))
 (defun pl:table-species-key (p / id)
   (setq id (pl:get 'species_id p))
   (if (and id (/= id "")) (strcat "ID:" id) (strcat "NAME:" (pl:normal-name (pl:get 'name p)))))
@@ -992,7 +994,7 @@
     (pl:dimension-text 'dbh p) (pl:dimension-text 'caliper p) (pl:dimension-text 'height p) (pl:dimension-text 'crown p)
     (if quantity (pl:quantity-text p quantity) (if (equal (nth 2 record) "pending") "待关联" "")) (pl:get 'quantity_unit p) legend))
 (defun pl:table-legend-layout (p / plot scale height values diameter spec)
-  (setq plot (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5) (show_number . 0)))
+  (setq plot (pl:plot-options)
     scale (pl:block-scale p 1.0))
   (if (<= scale 0) (setq scale 1.0))
   (setq height (/ (pl:paper-height (pl:get 'paper_height plot) (pl:get 'scale plot) 1.0) scale)
@@ -1020,7 +1022,7 @@
   (if (not (and (boundp 'pl:*native-ui*) pl:*native-ui*)) (pl:fail "带图例的关联表需要配套原生插件，请从CountingTrees（数树）浮窗使用。"))
   (if (pl:require-units)
     (progn
-      (setq plot (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5)))
+      (setq plot (pl:plot-options)
         height (pl:paper-height (pl:get 'paper_height plot) (if (and (= (getvar "TILEMODE") 0) (= (getvar "CVPORT") 1)) 1.0 (pl:get 'scale plot)) (pl:units)))
       (if (setq point (getpoint (strcat "\n" title "插入点（原生关联表，带图例与编号）：")))
         (progn
@@ -1063,7 +1065,7 @@
           (progn
             (setq point (trans point 1 0) height (if source (pl:data-get source "TABLE_HEIGHT")))
             (if (not height)
-              (progn (setq plot (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5))))
+              (progn (setq plot (pl:plot-options))
                 (setq height (pl:paper-height (pl:get 'paper_height plot)
                   (if (and (= (getvar "TILEMODE") 0) (= (getvar "CVPORT") 1)) 1.0 (pl:get 'scale plot)) (pl:units)))))
             (foreach group groups

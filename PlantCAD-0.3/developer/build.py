@@ -11,7 +11,7 @@ import unittest
 import zipfile
 DEV=Path(__file__).resolve().parent
 ROOT=DEV.parent
-REVISION='0.3.28'
+REVISION='0.3.31'
 ARCHIVE=ROOT.parent/'releases'/('CountingTrees_数树_'+REVISION+'.zip')
 def package_files():
     excluded_dirs={'__pycache__','bin','backups','clients','runtime','host-output','fixtures','reports'}
@@ -55,7 +55,7 @@ def build():
     with (DEV/'src/plantcatalog.tsv').open(encoding='utf-8') as f:
         catalogue_count=sum(1 for _ in csv.DictReader(f,delimiter='\t'))
     readme=(ROOT/'docs/使用说明.md').read_text(encoding='utf-8')
-    for title in ['开发说明.md','验证说明.md','CAD实测清单.md','本轮操作反馈.md','整体复查报告.md','两点引线与样式稳定性.md','兼容性与测试矩阵.md','项目植物采集与验证.md','灌木标注字高修复.md']:
+    for title in ['开发说明.md','验证说明.md','CAD实测清单.md','本轮操作反馈.md','整体复查报告.md','两点引线与样式稳定性.md','兼容性与测试矩阵.md','项目植物采集与验证.md','灌木标注字高修复.md','大坐标区域填充修复.md','竹类与项目规格删除.md']:
         readme=readme.replace(']('+title+')','](docs/'+title+')')
     readme=readme.replace('](images/','](docs/images/')
     (ROOT/'README.md').write_text(readme,encoding='utf-8')

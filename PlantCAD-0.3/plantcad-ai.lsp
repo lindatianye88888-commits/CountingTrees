@@ -280,7 +280,7 @@
     (list "tables_skipped" (cadr tables))
     (list "note" "已更新植物、文字和受管理表格；跳过锁定、结构不匹配、更新失败或缺少范围记录的旧表，请核对跳过数量。可在CAD用U撤销，未自动保存图纸。"))))
 (defun pl:ai-plot (args / opts value)
-  (setq opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5) (show_number . 0))))
+  (setq opts (pl:plot-options))
   (foreach value args
     (if (member (car value) '("scale" "paper_height"))
       (progn

@@ -12,7 +12,7 @@ def main():
   "$t.GetMethod('Main',[System.Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @(,[string[]]@("+quote(out)+"))) | Out-Null\n")
  run=subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-STA','-Command',command],capture_output=True,timeout=45)
  result=(out/'project-dialog-render.txt').read_text(encoding='utf-8-sig') if (out/'project-dialog-render.txt').exists() else 'MISSING'
- report={'passed':run.returncode==0 and result=='PASS 16','assertions':16,'result':result,'output':str(out),'source_sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},'scope':'Real WinForms: resizing, filters, sorted-row identity, empty-project collection and ambiguous-specification picking; no CAD modal-ownership acceptance.'}
+ report={'passed':run.returncode==0 and result=='PASS 19','assertions':19,'result':result,'output':str(out),'source_sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},'scope':'Real WinForms: resizing, filters, sorted-row identity, empty-project collection, bamboo filtering, deletion action and ambiguous-specification picking; no CAD modal-ownership acceptance.'}
  (ROOT/'developer/project-form-verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  compatible=dict(report,source_sha256={p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sources})
  (ROOT/'developer/project-dialog-verification.json').write_text(json.dumps(compatible,ensure_ascii=False,indent=2),encoding='utf-8')

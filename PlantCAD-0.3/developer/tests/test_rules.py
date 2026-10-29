@@ -167,8 +167,8 @@ class Rules(unittest.TestCase):
     def test_independent_layers_include_geometric_area(self):
         layers = self.rt.call('pl:layers')
         names = [chinese(x[0]) for x in layers]
-        self.assertEqual(len(names), 25)
-        self.assertEqual(len(set(names)), 25)
+        self.assertEqual(len(names), 28)
+        self.assertEqual(len(set(names)), 28)
         self.assertIn('PL_标注_树木', names)
         self.assertIn('PL_表格_苗木', names)
         self.assertIn('PL_表格_植物名录', names)

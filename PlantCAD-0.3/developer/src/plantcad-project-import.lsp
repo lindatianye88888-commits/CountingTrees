@@ -136,4 +136,60 @@
         (setq key (pl:get 'id p))
         (if (not (member key seen))
           (setq seen (cons key seen) result (append result (list (list p nil "pending")))))))) result)
+
+;;; Delete exactly one project specification, including its managed drawing output.
+(defun pl:project-without-id (rows id / result row)
+  (foreach row rows
+    (if (/= (pl:get 'id row) id) (setq result (append result (list row))))) result)
+(defun pl:project-delete-plan (id objects / roots followers tables e p role rows row matches others)
+  (foreach e objects
+    (setq role (pl:role e) p nil)
+    (cond ((= role "TREE") (setq p (pl:data-get e "PLANT")))
+      ((= role "AREA") (setq p (pl:data-get e "AREA_PLANT")))
+      ((= role "PROJECT_SOURCE") (setq p (pl:data-get e "PROJECT_PLANT"))))
+    (if (and p (= (pl:get 'id p) id)) (setq roots (cons e roots))))
+  (foreach e objects
+    (setq role (pl:role e))
+    (if (and (member role '("LABEL" "LEADER" "AREA_LABEL" "AREA_LEADER" "AREA_ARROW" "AREA_FILL" "FILL_EDGE"))
+      (member (pl:source e) roots)) (setq followers (cons e followers)))
+    (if (= role "TABLE")
+      (progn
+        (setq rows (pl:data-get e "TABLE_ROWS") matches nil others nil)
+        (foreach row rows (if (= (car row) id) (setq matches T) (setq others T)))
+        (if matches
+          (progn
+            (if (not (pl:writable e)) (pl:fail "关联表格图层已锁定，请解锁后再删除规格。"))
+            (if (not others) (setq tables (cons e tables))))))))
+  (foreach e (append roots followers)
+    (if (not (pl:writable e)) (pl:fail "待删除植物、标注或填充的图层已锁定，请先解锁。")))
+  (list roots followers tables))
+(defun pl:delete-project-spec (p / id plan handles e result remaining)
+  (if (not (and (boundp 'pl:*native-ui*) pl:*native-ui*))
+    (pl:fail "删除规格需要加载完整原生插件；当前没有删除任何内容。"))
+  (setq id (pl:get 'id p)
+    plan (pl:project-delete-plan id (pl:ss-list (ssget "_X" '((-3 ("PLANTCAD01")))))))
+  (setq result (pl:native-value (pl:native-project-delete-confirm
+    (strcat (pl:get 'spec_no p) " " (pl:get 'name p))
+    (+ (length (car plan)) (length (cadr plan))) (length (caddr plan)))))
+  (if (not (numberp result)) (pl:fail (if (= (type result) 'STR) result "删除确认失败，未作更改。")))
+  (if (= result 1)
+    (progn
+      (foreach e (append (car plan) (cadr plan) (caddr plan))
+        (setq handles (cons (cdr (assoc 5 (entget e))) handles)))
+      (if handles
+        (progn
+          (setq result (pl:native-value (pl:native-project-erase handles)))
+          (if (not (and (numberp result) (= result (length handles))))
+            (pl:fail (if (= (type result) 'STR) result "删除对象失败，项目规格尚未移除。")))))
+      (setq remaining (pl:project-without-id (pl:defs) id))
+      (pl:db-put "PLANTS" remaining)
+      (pl:db-put "SPEC_HISTORY" (pl:project-without-id (pl:db-get "SPEC_HISTORY" nil) id))
+      (if (= (pl:db-get "CURRENT" "") id)
+        (pl:db-put "CURRENT" (if remaining (pl:get 'id (car remaining)) "")))
+      (setq pl:*entity-cache* nil pl:*link-cache* nil pl:*count-cache* nil)
+      (pl:sync-drawing) (setq pl:*drawing-changed* nil)
+      (if (and (listp pl:*sync-result*) (numberp (cadr pl:*sync-result*)) (> (cadr pl:*sync-result*) 0))
+        (princ (strcat "\n有 " (itoa (cadr pl:*sync-result*)) " 个关联表未能刷新，请查看命令记录；可用 U 撤销本次改动。")))
+      (princ (strcat "\n已删除规格 " (pl:get 'spec_no p) "；对应图上对象已删除，关联表已处理。")) T)
+    (progn (princ "\n已取消删除，图纸和项目规格未更改。") nil)))
 (princ)

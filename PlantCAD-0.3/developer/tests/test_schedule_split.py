@@ -15,14 +15,14 @@ class SplitSchedules(fixtures.Rules):
         self.assertEqual([display[0],*display[2:]],cells[:9])
 
     def test_categories_partition_all_kinds_without_changing_records(self):
-        records=[[self.put('kind',k,self.put('id',str(k))),k+1] for k in range(6)]
+        records=[[self.put('kind',k,self.put('id',str(k))),k+1] for k in range(7)]
         self.rt.builtins['pl:output-counts']=lambda scope:[[None,*row] for row in records]
         self.rt.builtins['pl:output-table-objects']=lambda scope:[]
         groups=self.rt.call('pl:table-split-groups',records,'category',self.scope())
         self.assertEqual(len(groups),3)
         partitions=[self.rt.call('pl:output-table-records','count',g[1]) for g in groups]
-        self.assertEqual([[self.get('kind',r[0]) for r in group] for group in partitions],[[0],[3],[1,2,4,5]])
-        self.assertEqual(sum(r[1] for part in partitions for r in part),21)
+        self.assertEqual([[self.get('kind',r[0]) for r in group] for group in partitions],[[0,6],[3],[1,2,4,5]])
+        self.assertEqual(sum(r[1] for part in partitions for r in part),28)
 
     def test_species_splits_keep_multiple_specifications_together(self):
         a=self.put('species_id','SPECIES_1',self.put('spec_no','P001'))

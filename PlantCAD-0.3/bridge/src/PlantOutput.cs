@@ -38,14 +38,15 @@ namespace PlantCADBridge {
     return hasRole&&hasSource;
    }
   }
-  // Region edges retain arcs/splines; no tessellated replacement is used for hatch boundaries.
+  // Preserve source curves for the normal path. Only the hatch's owned copies
+  // may use a bounded polygonal fallback when the native kernel rejects arcs.
   static List<List<Curve>> OutputLoops(Entity boundary) {
    var result=new List<List<Curve>>();var pieces=new DBObjectCollection();var remaining=new List<Curve>();
    try{
     if(!CollectAreaBoundary(boundary,pieces,0)||pieces.Count==0)throw new InvalidOperationException("填充边界没有可用的完整曲线，请重新扫描面积。");
     foreach(DBObject piece in pieces)remaining.Add((Curve)piece);
    }catch{foreach(DBObject piece in pieces)piece.Dispose();throw;}
-   double tolerance=Math.Max(1e-7,(boundary.GeometricExtents.MaxPoint-boundary.GeometricExtents.MinPoint).Length*1e-8);
+   double tolerance=OutputJoinTolerance(boundary);
    try {
     while(remaining.Count>0) {
      var loop=new List<Curve>();Curve first=remaining[0];remaining.RemoveAt(0);loop.Add(first);result.Add(loop);
@@ -64,18 +65,72 @@ namespace PlantCADBridge {
       Curve next=remaining[found];remaining.RemoveAt(found);loop.Add(next);end=reverse?next.StartPoint:next.EndPoint;
      }
     }
-    // Largest loop is the outer boundary. All subsequent loops are islands.
+    // ACIS exports independent arc/line endpoints with slightly different
+    // rounding at survey coordinates. A bulged polyline shares each join once,
+    // retaining circular arcs without asking ACIS to rebuild the region.
+    for(int i=0;i<result.Count;i++){
+     Polyline joined=OutputJoinedLoop(result[i],tolerance);
+     if(joined!=null){foreach(Curve curve in result[i])curve.Dispose();result[i]=new List<Curve>{joined};}
+    }
+    // Largest loop first; disconnected outer components remain separate.
     result.Sort((a,b)=>OutputLoopArea(b).CompareTo(OutputLoopArea(a)));
     return result;
    }catch{foreach(var loop in result)foreach(Curve c in loop)c.Dispose();foreach(Curve c in remaining)c.Dispose();throw;}
   }
+  static double OutputJoinTolerance(Entity boundary){
+   var box=boundary.GeometricExtents;
+   double coordinate=Math.Max(Math.Max(Math.Abs(box.MinPoint.X),Math.Abs(box.MinPoint.Y)),Math.Max(Math.Abs(box.MaxPoint.X),Math.Abs(box.MaxPoint.Y)));
+   return Math.Max(1e-7,Math.Max((box.MaxPoint-box.MinPoint).Length*1e-8,coordinate*2.2204460492503131e-16*16));
+  }
+  static Polyline OutputJoinedLoop(List<Curve> loop,double tolerance){
+   foreach(Curve curve in loop)if(!(curve is Line)&&!(curve is Arc))return null;
+   var poly=new Polyline();bool complete=false;
+   try{
+    Point3d origin=loop[0].StartPoint,current=origin;
+    for(int i=0;i<loop.Count;i++){
+     Curve curve=loop[i];bool forward=current.DistanceTo(curve.StartPoint)<=tolerance;
+     if(!forward&&current.DistanceTo(curve.EndPoint)>tolerance)throw new InvalidOperationException("填充曲线接缝超出数值容差，请重新扫描该区域。");
+     var arc=curve as Arc;
+     double sweep=arc==null?0:arc.TotalAngle*(forward?1:-1)*(arc.Normal.Z<0?-1:1);
+     poly.AddVertexAt(i,new Point2d(current.X-origin.X,current.Y-origin.Y),Math.Tan(sweep/4),0,0);
+     current=forward?curve.EndPoint:curve.StartPoint;
+    }
+    if(current.DistanceTo(origin)>tolerance)throw new InvalidOperationException("填充曲线没有闭合，请重新扫描该区域。");
+    poly.Closed=true;poly.Elevation=origin.Z;
+    poly.TransformBy(Matrix3d.Displacement(new Vector3d(origin.X,origin.Y,0)));
+    complete=true;return poly;
+   }finally{if(!complete)poly.Dispose();}
+  }
+  static Polyline OutputLinearLoop(Polyline source,double error){
+   // The chord sagitta is bounded by error. Never change the measured region.
+   var result=new Polyline();bool complete=false;
+   try{
+    for(int i=0;i<source.NumberOfVertices;i++){
+     double angle=Math.Abs(4*Math.Atan(source.GetBulgeAt(i)));int count=1;
+     if(angle>1e-12){using(var arc=source.GetArcSegment2dAt(i)){
+      double step=2*Math.Acos(Math.Max(-1,Math.Min(1,1-error/arc.Radius)));
+      if(step<=0)throw new InvalidOperationException("填充曲线精度超出可处理范围。");
+      count=Math.Max(1,(int)Math.Ceiling(angle/step));
+     }}
+     if(count>16384||result.NumberOfVertices+count>65536)throw new InvalidOperationException("填充曲线过于复杂，请分区处理。");
+     for(int k=0;k<count;k++){var p=source.GetPointAtParameter(i+(double)k/count);result.AddVertexAt(result.NumberOfVertices,new Point2d(p.X,p.Y),0,0,0);}
+    }
+    if(result.NumberOfVertices<3)throw new InvalidOperationException("填充轮廓过小，无法生成有效边界。");
+    result.Closed=true;result.Elevation=source.Elevation;complete=true;return result;
+   }finally{if(!complete)result.Dispose();}
+  }
   static double OutputLoopArea(List<Curve> loop) {
-   var objects=new DBObjectCollection();foreach(Curve curve in loop)objects.Add(curve);
-   var regions=Region.CreateFromCurves(objects);double area=0;
-   foreach(DBObject obj in regions){var region=obj as Region;if(region!=null)area+=region.Area;obj.Dispose();}
-   return area;
+   var objects=new DBObjectCollection();Point3d origin=loop[0].StartPoint;
+   try{
+    foreach(Curve curve in loop){var copy=(Curve)curve.Clone();objects.Add(copy);copy.TransformBy(Matrix3d.Displacement(Point3d.Origin-origin));}
+    if(objects.Count==1&&objects[0] is Polyline)return ((Polyline)objects[0]).Area;
+    var regions=Region.CreateFromCurves(objects);double area=0;
+    try{foreach(Region region in regions)area+=region.Area;}finally{foreach(DBObject obj in regions)obj.Dispose();}
+    return area;
+   }finally{foreach(DBObject obj in objects)obj.Dispose();}
   }
   static bool[] OutputOuterLoops(List<List<Curve>> loops){
+   if(loops.Count==1)return new[]{true};
    var result=new bool[loops.Count];var regions=new List<Region>();
    Point3d origin=loops[0][0].StartPoint;var shift=Matrix3d.Displacement(Point3d.Origin-origin);
    try{
@@ -100,8 +155,27 @@ namespace PlantCADBridge {
     return result;
    }finally{foreach(Region region in regions)region.Dispose();}
   }
+  static void ValidateOutputFillBoundary(Entity boundary,List<List<Curve>> loops,bool[] outer,double renderingError){
+   double expected=boundary is Region?((Region)boundary).Area:((Polyline)boundary).Area;
+   double actual=0,perimeter=0;
+   for(int i=0;i<loops.Count;i++){
+    actual+=(outer[i]?1:-1)*OutputLoopArea(loops[i]);
+    foreach(Curve curve in loops[i])perimeter+=curve.GetDistanceAtParameter(curve.EndParam)-curve.GetDistanceAtParameter(curve.StartParam);
+   }
+   double error=Math.Max(1e-8,Math.Max(expected*1e-8,Math.Max(OutputJoinTolerance(boundary)*perimeter*4,renderingError*perimeter*2)));
+   if(Double.IsNaN(actual)||Double.IsInfinity(actual)||actual<=0||Math.Abs(actual-expected)>error)
+    throw new InvalidOperationException("填充轮廓与原区域面积不一致，已取消本次填充；请核对内孔和边界。");
+  }
   [LispFunction("pl:native-fill")]
   public ResultBuffer WriteAreaFill(ResultBuffer args) {
+   // A rejected native append rolls back completely before the single fallback.
+   ResultBuffer exact=WriteAreaFillCore(args,false);string message=Convert.ToString(exact.AsArray()[0].Value);
+   if(message.IndexOf("eInvalidInput",StringComparison.Ordinal)<0||
+    !(message.Contains("整理填充边界")||message.Contains("区分外轮廓")||message.Contains("写入填充轮廓")))return exact;
+   exact.Dispose();return WriteAreaFillCore(args,true);
+  }
+  ResultBuffer WriteAreaFillCore(ResultBuffer args,bool linearize) {
+   string stage="读取区域";
    try {
     TypedValue[] v=args.AsArray();if(v.Length!=5)throw new ArgumentException("填充参数无效。");
     string handle=Convert.ToString(v[0].Value),pattern=Convert.ToString(v[1].Value),layer=Convert.ToString(v[4].Value);
@@ -120,25 +194,36 @@ namespace PlantCADBridge {
      if(layer=="PL_灌木_填充"&&(fillRecord.Color.ColorIndex==2||fillRecord.Color.ColorIndex==3)) {
       fillRecord.UpgradeOpen();fillRecord.Color=Autodesk.AutoCAD.Colors.Color.FromColorIndex(Autodesk.AutoCAD.Colors.ColorMethod.ByAci,8);
      }
-     var loops=OutputLoops(boundary);
+     stage="整理填充边界";var loops=OutputLoops(boundary);
      try {
-      bool[] outerLoops=OutputOuterLoops(loops);
-      var hatch=new Hatch();hatch.SetDatabaseDefaults(db);hatch.LayerId=fillLayer;hatch.ColorIndex=256;hatch.Elevation=boundary is Region?((Region)boundary).GeometricExtents.MinPoint.Z:((Polyline)boundary).Elevation;
-      space.AppendEntity(hatch);tr.AddNewlyCreatedDBObject(hatch,true);hatch.SetHatchPattern(HatchPatternType.PreDefined,pattern);
+      double renderingError=0;
+      if(linearize){
+       renderingError=Math.Max(OutputJoinTolerance(boundary)*8,Math.Min((boundary.GeometricExtents.MaxPoint-boundary.GeometricExtents.MinPoint).Length*1e-6,scale*.0001));
+       for(int i=0;i<loops.Count;i++)if(loops[i].Count==1&&loops[i][0] is Polyline){
+        var simplified=OutputLinearLoop((Polyline)loops[i][0],renderingError);loops[i][0].Dispose();loops[i]=new List<Curve>{simplified};
+       }
+      }
+      stage="区分外轮廓和内孔";bool[] outerLoops=OutputOuterLoops(loops);
+      ValidateOutputFillBoundary(boundary,loops,outerLoops,renderingError);
+      Point3d anchor=boundary.GeometricExtents.MinPoint;
+      var hatch=new Hatch();hatch.SetDatabaseDefaults(db);hatch.LayerId=fillLayer;hatch.ColorIndex=256;hatch.Elevation=anchor.Z;
+      stage="设置填充图案";space.AppendEntity(hatch);tr.AddNewlyCreatedDBObject(hatch,true);hatch.SetHatchPattern(HatchPatternType.PreDefined,pattern);
+      hatch.Origin=new Point2d(anchor.X,anchor.Y);
       hatch.PatternScale=scale;hatch.PatternAngle=angle;hatch.HatchStyle=HatchStyle.Normal;hatch.Associative=true;
       hatch.SetHatchPattern(HatchPatternType.PreDefined,pattern);
       for(int i=0;i<loops.Count;i++) {
        var ids=new ObjectIdCollection();foreach(Curve curve in loops[i]){curve.SetDatabaseDefaults(db);curve.LayerId=edgeLayer;curve.Visible=false;space.AppendEntity(curve);tr.AddNewlyCreatedDBObject(curve,true);OutputMark(db,tr,curve,"FILL_EDGE",handle);ids.Add(curve.ObjectId);}
-       hatch.AppendLoop(outerLoops[i]?HatchLoopTypes.Outermost:HatchLoopTypes.Default,ids);
+       stage="写入填充轮廓 "+(i+1);hatch.AppendLoop(outerLoops[i]?HatchLoopTypes.Outermost:HatchLoopTypes.Default,ids);
       }
-      hatch.EvaluateHatch(true);OutputMark(db,tr,hatch,"AREA_FILL",handle);output=hatch.Handle.ToString();
+      stage="计算填充图案";hatch.EvaluateHatch(true);
+      OutputMark(db,tr,hatch,"AREA_FILL",handle);output=hatch.Handle.ToString();
       var order=(DrawOrderTable)tr.GetObject(space.DrawOrderTableId,OpenMode.ForWrite);order.MoveToBottom(new ObjectIdCollection(new[]{hatch.ObjectId}));
       foreach(ObjectId id in old)((Entity)tr.GetObject(id,OpenMode.ForWrite)).Erase();
       tr.Commit();
      }finally{foreach(var loop in loops)foreach(Curve curve in loop)curve.Dispose();}
     }
     return new ResultBuffer(new TypedValue((int)LispDataType.Text,output));
-   }catch(System.Exception ex){return new ResultBuffer(new TypedValue((int)LispDataType.Text,"ERROR: "+ex.Message));}
+   }catch(System.Exception ex){return new ResultBuffer(new TypedValue((int)LispDataType.Text,"ERROR: "+stage+"："+ex.Message));}
   }
   static List<object> OutputArguments(ResultBuffer args) {
    // LispFunction arguments are an argument sequence. A leading point/list is

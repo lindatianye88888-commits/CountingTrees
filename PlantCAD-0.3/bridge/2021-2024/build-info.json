@@ -19,18 +19,18 @@
     "PlantCADBridge.cs": "47792d2006f6e5f8eda7f21a48d2b92b51b1e8c7f306985ba17466ac04487e95",
     "LispValueReader.cs": "16bfa6696e47b338af732053e0d29bcdeda12c4f92638396a2fb290acaaf7a6e",
     "PlantCADPanel.cs": "40c03804152b526feddf597794ac3bb6b9791b84f9bac3f8ed7ce7b3a253f734",
-    "PlantCADWorkbench.cs": "814338f870b543c5b456513fa0a3bab1f7fa6a8413e7f2f17b0e4f15e81c432e",
+    "PlantCADWorkbench.cs": "b77875237c6aa5c15b7bf38e8981b6b85ea206f953ab6586dbca57932cdac9d3",
     "PlantAreaGeometry.cs": "848299e8a232461f6ceb229492683e23a9380fb375aa76d4d3aba8347c089c9d",
     "PlantAreaRepair.cs": "e3cf02eb4b05440a7d85fdd6bb37e6a243db255e105ac5dc4a1f2fc10b69aae9",
     "PlantAreaInteraction.cs": "bd71d00eab8095742903a75be1a46ecb5a5fafc2a99b823f1ad4dba143b79cf1",
     "PlantAreaNormalization.cs": "dadfdef14f0d26b9ad3be1451b693fae6e65fd7cd44cc82d2ec22903b3ebd8e8",
     "PlantInstanceEditing.cs": "79cbcd3f69b277668766cbde200e676512a820e7bf27aa962ff5e74cffe5db02",
-    "PlantOutput.cs": "8f101ad718f4efb45bbd9c66cf079466ecd2b8cd0736a244e8760cc708837e1c",
+    "PlantOutput.cs": "70eac02996eee46b4ad955151e721ce15695fe48d429cc2a02773a13dd30ff82",
     "PlantAreaLeader.cs": "453d0634e99ca65887415a5b5e27fdc83320e2598ef7978f192da7204bb71a04",
     "PlantAreaManual.cs": "6a4837651a0871a4fe2090153f48b871097edc5d331f9089a5186dacff93a929",
     "PlantAreaLabelEdit.cs": "f5f8eec1579c3099e73fa1f790a948c75fca6c23cf8b5239cc9354e825940385",
-    "PlantProjectDialog.cs": "d8fb49e2dca1135076902cb28c85d0966d1b4234e582f2e12baf82e703ff82e1",
-    "PlantProjectBridge.cs": "9dd824e5b70ebe03f3bf84264d563d31929cc981bc48000a4525847d15c031b0",
+    "PlantProjectDialog.cs": "67ce2733b1f48bc5c80dde757a4edef94c96feefac4017fbb7e7daea27e171a2",
+    "PlantProjectBridge.cs": "790fe6686c05bb4f688d52a819cd7f02151a91c50ce88d2caa30b3b1dbd2a7dc",
     "PlantAnnotationParser.cs": "30fbff08b13dda462f61093a8b2f56440bf79cc97d7fa92741464e20bf6029a8",
     "PlantProjectImport.cs": "65d94d3cb182e42c2ee5ec772ae697645acc7ed39bebcf3128c41e0515e40d7b",
     "acmgd.dll": "9e33a7a91030f36ca340859f48e25c0f5fa396e5f173d717abfbd898186a9901",
@@ -39,5 +39,5 @@
     "csc.exe": "aae1db57f898ca8bda18590c56f86ced6d0ead80c22033b76fdfe9119706f116",
     "target": "2021-2024"
   },
-  "sha256": "a132ca2e1671a2519bbcfd306fa5245eda00b1a46b3bd60baa780b3b8c6f839b"
+  "sha256": "ec617c70cded64bb8bca5b4bec84bed6bafb068688f232dde4c7ab8c0e1b8e54"
 }

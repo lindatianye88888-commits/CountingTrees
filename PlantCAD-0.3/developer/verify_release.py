@@ -20,7 +20,7 @@ for row in manifest['files']:
         assert data.decode('gbk').replace('\r\n','\n')==source
 with (root/'plantcatalog.tsv').open(encoding='gbk',newline='') as f:
     rows=list(csv.DictReader(f,delimiter='\t'))
-assert len(rows)==468 and len({r['id'] for r in rows})==468
+assert len(rows)==manifest['catalogue_entries'] and len({r['id'] for r in rows})==len(rows)
 sys.path.insert(0,str(root/'developer/tests'))
 from lisp_harness import Runtime,parse,Sym
 rt=Runtime()
@@ -33,7 +33,7 @@ reader=json.loads((root/'bridge/reader-verification.json').read_text(encoding='u
 reader_valid=reader.get('passed') is True and reader.get('reader_source_sha256')==hashlib.sha256((root/'bridge/src/LispValueReader.cs').read_bytes()).hexdigest() and reader.get('test_source_sha256')==hashlib.sha256((root/'bridge/tests/ReaderTests.cs').read_bytes()).hexdigest()
 report=dict(release='0.3',automated_rule_tests=manifest['automated_rule_tests'],test_groups=manifest['test_groups'],
             cad_pure_check_simulation=dict(passed=17,failed=0),
-            native_value_reader='passed (independent .NET run, current sources)' if reader_valid else 'not verified for current sources',catalogue_entries=468,
+            native_value_reader='passed (independent .NET run, current sources)' if reader_valid else 'not verified for current sources',catalogue_entries=len(rows),
             gbk_roundtrip='passed',manifest_hashes='passed',real_cad_host_tested=manifest['host_tested'],host_test_scope=manifest['host_test_scope'])
 native=json.loads((root/'developer/native-rule-verification.json').read_text(encoding='utf-8'))
 native_valid=native.get('passed') is True and len(native.get('checks',[]))==12 and all(

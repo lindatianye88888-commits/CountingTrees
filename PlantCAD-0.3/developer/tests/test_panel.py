@@ -92,7 +92,7 @@ class PanelRules(fixtures.Rules):
         self.assertEqual(self.rt.call('pl:pick-placement',self.p,1000.),[12.,34.,0.])
         self.assertEqual(captured[0][0],'PL02_CIRCLE')
         self.assertEqual(captured[0][1],3000.)
-        self.assertEqual(captured[0][2],250.)
+        self.assertEqual(captured[0][2],1000.)
         self.assertEqual(chinese(captured[0][3]),'香樟')
 
 for name in dir(fixtures.Rules):

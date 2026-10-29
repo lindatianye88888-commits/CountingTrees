@@ -145,9 +145,37 @@ namespace PlantCADBridge {
   internal const string QqMail="375803231@qq.com";
   internal const string ContactText="Gmail："+Gmail+"\nQQ邮箱："+QqMail;
   internal static void ShowAbout(IWin32Window owner) {
-   MessageBox.Show(owner,"CountingTrees（数树）\n\n署名："+Author+"\n\n"+ContactText,
-    "关于 CountingTrees（数树）",MessageBoxButtons.OK,MessageBoxIcon.Information);
+   using(var form=CreateAbout())form.ShowDialog(owner);
   }
+  internal static Form CreateAbout(){
+   var form=new Form{Text="关于 CountingTrees（数树）",ClientSize=new Size(490,310),FormBorderStyle=FormBorderStyle.FixedDialog,
+    MaximizeBox=false,MinimizeBox=false,ShowInTaskbar=false,StartPosition=FormStartPosition.CenterParent,BackColor=Color.FromArgb(246,248,245),Font=new Font("Microsoft YaHei UI",10F)};
+   form.Controls.Add(new BrandMark{Location=new Point(24,24),Size=new Size(90,90)});
+   form.Controls.Add(new Label{Text="CountingTrees / 数树",Location=new Point(132,28),AutoSize=true,Font=new Font("Microsoft YaHei UI",17F,FontStyle.Bold)});
+   form.Controls.Add(new Label{Text="景观植物绘图与数量统计 · 0.3.31 开发版",Location=new Point(134,76),AutoSize=true});
+   form.Controls.Add(new Label{Text="署名："+Author+"\n\n"+ContactText,Location=new Point(28,134),Size=new Size(440,112)});
+   var close=new Button{Text="关闭",DialogResult=DialogResult.Cancel,Location=new Point(352,264),Size=new Size(110,30)};
+   form.Controls.Add(close);form.CancelButton=close;form.AcceptButton=close;return form;
+  }
+ }
+ internal sealed class BrandMark : Control {
+  internal BrandMark(){DoubleBuffered=true;}
+  internal static void Draw(Graphics g,float size){
+   var state=g.Save();g.ScaleTransform(size/256F,size/256F);g.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+   using(var bg=new SolidBrush(Color.FromArgb(18,63,48)))g.FillRectangle(bg,0,0,256,256);
+   using(var pen=new Pen(Color.FromArgb(230,244,225),7F)){
+    pen.StartCap=pen.EndCap=System.Drawing.Drawing2D.LineCap.Round;
+    g.DrawEllipse(pen,59,79,82,82);g.DrawEllipse(pen,115,79,82,82);g.DrawEllipse(pen,87,48,82,82);
+    g.DrawLine(pen,128,121,128,199);g.DrawLine(pen,128,158,102,137);g.DrawLine(pen,128,176,155,151);g.DrawLine(pen,101,200,155,200);
+   }
+   using(var pen=new Pen(Color.FromArgb(159,204,135),4F)){
+    g.DrawLines(pen,new[]{new PointF(25,62),new PointF(25,25),new PointF(62,25)});
+    g.DrawLines(pen,new[]{new PointF(194,231),new PointF(231,231),new PointF(231,194)});
+   }
+   using(var dot=new SolidBrush(Color.FromArgb(211,180,97)))for(int i=0;i<3;i++)g.FillEllipse(dot,181+i*18,30,8,8);
+   g.Restore(state);
+  }
+  protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);Draw(e.Graphics,Math.Min(Width,Height));}
  }
  internal sealed class SymbolPreview : Control {
   public int Style;public string PlantName="";

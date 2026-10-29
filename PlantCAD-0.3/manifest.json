@@ -8,8 +8,8 @@
     "qq": "375803231@qq.com"
   },
   "release": "0.3",
-  "date": "2026-10-26",
-  "revision": "0.3.28",
+  "date": "2026-10-29",
+  "revision": "0.3.31",
   "target": "Windows AutoCAD 2014—2024 x64; matching Tianzheng versions require host acceptance",
   "compatibility_groups": [
     {
@@ -100,18 +100,18 @@
   "host_tested": false,
   "host_tested_years": [],
   "host_test_scope": "2015—2024 native host/Tianzheng acceptance pending; not full GUI/print or third-party object editing acceptance",
-  "automated_rule_tests": 309,
+  "automated_rule_tests": 323,
   "test_groups": {
-    "plant_rules": 299,
+    "plant_rules": 313,
     "mcp_protocol": 10
   },
-  "catalogue_entries": 468,
+  "catalogue_entries": 482,
   "runtime_encoding": "CP936/GBK",
   "files": [
     {
       "name": "plantcad-ai.lsp",
-      "size": 18694,
-      "sha256": "78599150649b3ba46541ead8478c76767c3d9516d8198b45ca1050675b2099b3",
+      "size": 18627,
+      "sha256": "b40c68822c1e33510ded953e2eabbfe68eb415ccbe7f3d47a75ce88567439d36",
       "encoding": "GBK"
     },
     {
@@ -122,86 +122,86 @@
     },
     {
       "name": "plantcad-core.lsp",
-      "size": 16919,
-      "sha256": "db133b1646b51cee10fb3f748dc096b6c8c29ad9f8b73847c19932cc5a60bfe7",
+      "size": 17416,
+      "sha256": "f5f8535562c8d8fe02764792b05cb0eb12ec70cf4418a8ce18162a638072970f",
       "encoding": "GBK"
     },
     {
       "name": "plantcad-design.lsp",
-      "size": 31914,
-      "sha256": "2ae98aae050ada85b0949f68d3af4924be59e490cd601e974276f932b3a3377b",
+      "size": 32536,
+      "sha256": "ad2d0d86cb8aca32dca013e61525157800abe255b2f56de38530a644d2cda5fe",
       "encoding": "GBK"
     },
     {
       "name": "plantcad-project-import.lsp",
-      "size": 7642,
-      "sha256": "0c7b8e415784d55258a62f8fe9bb755977e7c6746565f17e5ac7de1df4d6c5d7",
+      "size": 11019,
+      "sha256": "80997ebe48d322e58956f3270a2cb35553278fee899ae0b1928eade20aeee169",
       "encoding": "GBK"
     },
     {
       "name": "plantcad-ui.lsp",
-      "size": 7511,
-      "sha256": "c73c7c7647874d1f17ddb72f2d30d0d8fc52242963bd6c5f2333485b86b5db3e",
+      "size": 7413,
+      "sha256": "c4451b1d3b02b5d40eb51ee8f4c86babadef91be54dca08c52e51f432dbfcfc0",
       "encoding": "GBK"
     },
     {
       "name": "plantcad-workflow.lsp",
-      "size": 70455,
-      "sha256": "df757d4ca3b958d3ed8df02e9d572a1e432d5d1570a160f880c0b382f4defd82",
+      "size": 70338,
+      "sha256": "ccdc0ad362d36da31712e6a5da34f5bc1de6a88d22c8cf63dde7b23bca5e8591",
       "encoding": "GBK"
     },
     {
       "name": "plantcad.dcl",
-      "size": 8711,
-      "sha256": "e71f4a898ca9aee126767988729e3032a0e24205daf1ad5bde58bf62da7370d5",
+      "size": 8754,
+      "sha256": "da951afc2278f7c680d1a76ad3206af729af38083dcddedd2e6eb0819db8b8d7",
       "encoding": "GBK"
     },
     {
       "name": "plantcad.lsp",
-      "size": 37466,
-      "sha256": "15e28633918cd6cdc8e1d386036b3a1399a4f80be594af0eaba65ea77d2857a8",
+      "size": 37650,
+      "sha256": "33e47fecfe660120fc4eeffaff2f3f6c36c0a72187cb5044707409f43c1adac7",
       "encoding": "GBK"
     },
     {
       "name": "plantcatalog.tsv",
-      "size": 83024,
-      "sha256": "d6402e43388c723d3d4eadeabe601fe5aa537c7dbe9a14e2a31c707ae508c4bb",
+      "size": 85158,
+      "sha256": "7c9027ba3a7e7551813a3b0f5b44e32dd329fdad34d08c7da15b7481f467ef33",
       "encoding": "GBK"
     },
     {
       "name": "bridge/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "f3ddc4718d2ac02ded2718f4ccda27ed417e1f0394dc6d76f9fc26221aaab1fc",
+      "size": 138240,
+      "sha256": "2b2c79e02093fcfa70d5dfe80e56fd08ba3b416a5b792d1d1d65559b90e656e1",
       "encoding": "binary"
     },
     {
       "name": "bridge/2015-2016/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "74277ec92b3d55dcea37e5ca26dc5b8c7758a3f7281a5abf236ad31dd5902fa3",
+      "size": 138240,
+      "sha256": "1c0fa2973f4179d48d95da30bf80f80c60012b6da6db996f70873463d7176ca8",
       "encoding": "binary"
     },
     {
       "name": "bridge/2017/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "b1d7c17626ce017a8188e998e6965bb21f200c180f7e7288f9c2ed340fb74a11",
+      "size": 138240,
+      "sha256": "0923a275b239f1acf0c0e5bd3449a5e19219b977fabc591fb8e8c34875bc4b92",
       "encoding": "binary"
     },
     {
       "name": "bridge/2018/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "8b11ae36dc7089a4e1b88282982b1bfe90180bd71893406ed66ee005d913ac17",
+      "size": 138240,
+      "sha256": "c8bd6e89e2ad6342f02800c22121bc2ffa9043cae1405fde2e9680b7ac0db61e",
       "encoding": "binary"
     },
     {
       "name": "bridge/2019-2020/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "07285353fe7c83578980c04c05005b34a68988cb60dee8a426501f0db0dda79a",
+      "size": 138240,
+      "sha256": "f2453027465c3bc20ad815c8f9c03eb5395c2ec384c97854eb8f474ff0aec1c9",
       "encoding": "binary"
     },
     {
       "name": "bridge/2021-2024/PlantCADBridge.dll",
-      "size": 131072,
-      "sha256": "a132ca2e1671a2519bbcfd306fa5245eda00b1a46b3bd60baa780b3b8c6f839b",
+      "size": 138240,
+      "sha256": "ec617c70cded64bb8bca5b4bec84bed6bafb068688f232dde4c7ab8c0e1b8e54",
       "encoding": "binary"
     }
   ]

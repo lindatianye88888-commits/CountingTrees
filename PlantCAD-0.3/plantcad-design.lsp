@@ -14,10 +14,21 @@
               (setq rows (append rows (list s)) seen (cons (strcase (pl:get 'id s)) seen))))))
       (close file)
       (if (or invalid (not rows)) nil rows)) nil))
-(defun pl:catalog (/ rows)
-  (setq rows (pl:db-get "CATALOG" nil))
-  (if (not rows) (setq rows (pl:read-catalog (strcat pl:*dir* "/plantcatalog.tsv"))))
-  rows)
+(defun pl:catalog-merge-bamboo (rows defaults / s row exists)
+  ;; Upgrade saved catalogues without overwriting designer-maintained entries.
+  (foreach s defaults
+    (if (= (pl:get 'category s) 6)
+      (progn
+        (setq exists nil)
+        (foreach row rows
+          (if (or (= (strcase (pl:get 'id row)) (strcase (pl:get 'id s)))
+                  (= (pl:normal-name (pl:get 'name row)) (pl:normal-name (pl:get 'name s))))
+            (setq exists T)))
+        (if (not exists) (setq rows (append rows (list s))))))) rows)
+(defun pl:catalog (/ rows defaults)
+  (setq rows (pl:db-get "CATALOG" nil)
+    defaults (pl:read-catalog (strcat pl:*dir* "/plantcatalog.tsv")))
+  (if rows (pl:catalog-merge-bamboo rows defaults) defaults))
 (defun pl:write-catalog (file rows / s)
   (write-line "id\tname\tcategory\tregion\tsource\tnote\tsupply\ttags" file)
   (foreach s rows (write-line (pl:species-line s) file)))
@@ -188,6 +199,7 @@
         (action_tile "update" "(done_dialog 4)")
         (action_tile "manual" "(done_dialog 5)")
         (action_tile "clone" "(done_dialog 6)")
+        (action_tile "delete" "(done_dialog 8)")
         (action_tile "accept" "(done_dialog 1)")
         (action_tile "place" "(done_dialog 7)")
         (action_tile "cancel" "(done_dialog 0)")
@@ -217,6 +229,8 @@
             (if p (progn (pl:save-def p) (setq index (max 0 (1- (length (pl:defs))))))))
           ((and (= status 3) p) (setq p (pl:edit-project-dialog p)) (if p (pl:save-project-spec p)))
           ((= status 4) (pl:collect-project-work))
+          ((and (= status 8) p) (pl:delete-project-spec p)
+            (setq index (min index (max 0 (1- (length (pl:defs)))))))
           ((and (= status 7) p) (pl:db-put "CURRENT" (pl:get 'id p)) (setq quit T) (pl:placement-menu-work))
           ((and (= status 1) p) (pl:db-put "CURRENT" (pl:get 'id p))
             (princ (strcat "\n当前规格：" (pl:get 'spec_no p) " " (pl:get 'name p))) (setq quit T)))))
@@ -252,7 +266,7 @@
     (set_tile "error" "比例和字高须大于0；自定义单位请先使用“按已知长度校准”。")))
 (defun pl:design-settings (/ dlg status opts u)
   (setq dlg (pl:dialog "pl_settings") u (pl:unit-index)
-        opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5) (show_number . 0))))
+        opts (pl:plot-options))
   (if dlg
     (progn
       (pl:popup "unit" '("毫米 mm" "米 m" "厘米 cm" "自定义（按已知长度校准）"))
@@ -307,13 +321,13 @@
       point (list (car pos) (- (cadr pos) (* 0.75 height)) (caddr pos))))
     ((= tag "PL_SPEC") (setq text (pl:get 'spec_no p)
       point (list (car pos) (- (cadr pos) (* 2.25 height)) (caddr pos))
-      hidden (or (member (pl:get 'kind p) '(0 3)) (/= (pl:get 'show_number opts) 1)))))
+      hidden (or (member (pl:get 'kind p) '(0 3 6)) (/= (pl:get 'show_number opts) 1)))))
   (if text (list text point (or (= text "") hidden))))
 (defun pl:refresh-symbol (e / p obj attrs attr tag units opts height scale pos text point no state values)
   (setq p (pl:plant e))
   (if (and p (pl:writable e) (setq units (pl:data-get e "UNITS")))
     (progn
-      (setq opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5) (show_number . 0)))
+      (setq opts (pl:plot-options)
         state (pl:symbol-state e p units opts))
       (if (equal state (pl:get e pl:*symbol-states*)) T
       (progn
@@ -427,7 +441,7 @@
   (if (or (> (vla-get-Count (vla-get-ModelSpace (pl:doc))) 0) (pl:defs))
     (pl:fail "PLDEMO只用于新建空白图，请先另建空白图再运行。"))
   (pl:init-layers) (pl:built-blocks) (pl:db-put "UNIT" 0)
-  (pl:db-put "PLOT_OPTIONS" '((scale . 100.0) (paper_height . 2.5) (show_number . 0)))
+  (pl:db-put "PLOT_OPTIONS" (pl:default-plot-options))
   (setq p (pl:new-spec nil) p (pl:put 'name "银杏" p)
     p (pl:put 'dbh 12.0 p) p (pl:put 'height 4.0 p) p (pl:put 'crown 3.0 p))
   (pl:save-def p)
@@ -457,10 +471,10 @@
   (if (not rows) (princ "\n请先用PLDESIGN选择植物并建立项目规格。")
     (if (pl:require-units)
       (progn
-        (setq opts (pl:db-get "PLOT_OPTIONS" '((scale . 100.0))))
+        (setq opts (pl:plot-options))
         (setq scale (if (and (= (getvar "TILEMODE") 0) (= (getvar "CVPORT") 1))
                       1.0 (pl:get 'scale opts)))
-        (setq defaultheight (pl:paper-height 2.5 scale (pl:units)))
+        (setq defaultheight (pl:paper-height (pl:get 'paper_height (pl:plot-options)) scale (pl:units)))
         (initget 6)
         (setq height (getreal (strcat "\n表格字高 / cm <" (pl:num (/ (* defaultheight 100.0) (pl:units))) ">：")))
         (if height (setq height (* (/ height 100.0) (pl:units))) (setq height defaultheight))
@@ -525,7 +539,7 @@
   (foreach row pl:*project-visible*
     (add_list (pl:project-list-row row)))
   (end_list) (setq pl:*index* 0)
-  (foreach key '("edit" "clone" "accept" "place") (mode_tile key (if pl:*project-visible* 0 1)))
+  (foreach key '("edit" "clone" "delete" "accept" "place") (mode_tile key (if pl:*project-visible* 0 1)))
   (mode_tile "update" 0)
   (if pl:*project-visible* (set_tile "plants" "0")))
 (defun pl:calibrate-work (/ first second actual units)

@@ -46,7 +46,7 @@ public class OutputProbe {
    }
    string area=areaId.Handle.ToString(),first=Fill(area,"ANSI31");Check(!first.StartsWith("ERROR:"),"fill: "+first);
    using(Transaction tr=DB.TransactionManager.StartTransaction()) {
-    var hatch=(Hatch)tr.GetObject(Id(first),OpenMode.ForWrite);Check(hatch.NumberOfLoops==2,"Island loop missing");hatch.EvaluateHatch(true);Check(hatch.Associative,"Hatch not associative");Check(hatch.GetAssociatedObjectIds().Count==8,"Island boundary association wrong");
+    var hatch=(Hatch)tr.GetObject(Id(first),OpenMode.ForWrite);Check(hatch.NumberOfLoops==2,"Island loop missing");hatch.EvaluateHatch(true);Check(hatch.Associative,"Hatch not associative");Check(hatch.GetAssociatedObjectIds().Count==2,"Island closed boundary association wrong");
    }
    string second=Fill(area,"ANSI32");Check(!second.StartsWith("ERROR:"),"replace: "+second);Check(Id(first).IsErased,"Old fill retained");
    string invalid=Fill(area,"PLANTCAD_NO_SUCH_PATTERN");Check(invalid.StartsWith("ERROR:"),"Invalid pattern accepted");Check(!Id(second).IsErased,"Failed fill erased good hatch");
@@ -77,7 +77,7 @@ public class OutputProbe {
    }
    string compoundHandle=compoundId.Handle.ToString(),compoundFill=Fill(compoundHandle,"ANSI31");Check(!compoundFill.StartsWith("ERROR:"),"Compound region fill: "+compoundFill);
    using(var tr=DB.TransactionManager.StartTransaction()){
-    var hatch=(Hatch)tr.GetObject(Id(compoundFill),OpenMode.ForRead);Check(hatch.NumberOfLoops==2&&hatch.GetAssociatedObjectIds().Count==8,"Compound outer loops were lost");
+    var hatch=(Hatch)tr.GetObject(Id(compoundFill),OpenMode.ForRead);Check(hatch.NumberOfLoops==2&&hatch.GetAssociatedObjectIds().Count==2,"Compound outer loops were lost");
     Check((hatch.LoopTypeAt(0)&HatchLoopTypes.Outermost)!=0&&(hatch.LoopTypeAt(1)&HatchLoopTypes.Outermost)!=0,"Disconnected outer component was treated as a hole");
     // Hatch.Area is unavailable even for the simple hole fixture in Core
     // Console 2014. Verify the actual associated native boundary regions.

@@ -10,7 +10,7 @@ FILES=['plantcad.lsp','plantcad-core.lsp','plantcad-design.lsp','plantcad-ai.lsp
 FILES.extend(t['module'] for t in TARGETS if t['key']!='2014')
 
 def bundle_xml():
-    package=ET.Element('ApplicationPackage',{'SchemaVersion':'1.0','AppVersion':'0.3.28','Name':'CountingTrees',
+    package=ET.Element('ApplicationPackage',{'SchemaVersion':'1.0','AppVersion':'0.3.31','Name':'CountingTrees',
         'Description':'CountingTrees（数树）植物工作台 · AutoCAD 2014—2024 64位',
         'ProductCode':'{D75A82EC-CE0F-4E2D-AFC4-28FCD8D02618}','UpgradeCode':'{C2916E13-F217-47DD-981D-52C14ED13391}'})
     ET.SubElement(package,'CompanyDetails',Name='梅梅的AI景观实验室',Email='lindatianye88888@gmail.com')
@@ -85,10 +85,10 @@ def main():
         os.replace(temporary,target)
     (contents/'bridge/queue-root.json').write_text(json.dumps({'queue_root':str(queue)},ensure_ascii=False,indent=2),encoding='utf-8')
     manifest.write_text(bundle_xml(),encoding='utf-8')
-    state={'bundle':str(bundle),'source':str(ROOT),'queue':str(queue),'version':'0.3.28','targets':TARGETS,
+    state={'bundle':str(bundle),'source':str(ROOT),'queue':str(queue),'version':'0.3.31','targets':TARGETS,
            'files':[{'name':name,'sha256':hashlib.sha256((contents/name).read_bytes()).hexdigest()} for name in FILES]}
     (ROOT/'install-state.json').write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding='utf-8')
-    print('CountingTrees（数树）0.3.28已安装。按AutoCAD 2014—2024版本分组加载；高版本待对应实机验收。输入 COUNTINGTREES 或 数树打开。')
+    print('CountingTrees（数树）0.3.31已安装。按AutoCAD 2014—2024版本分组加载；高版本待对应实机验收。输入 COUNTINGTREES 或 数树打开。')
     print('梅梅的AI景观实验室 · Gmail: lindatianye88888@gmail.com · QQ邮箱: 375803231@qq.com')
     print(bundle)
 

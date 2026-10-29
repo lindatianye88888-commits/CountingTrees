@@ -138,7 +138,7 @@ class DesignRules(fixtures.Rules):
             'pl:plant':lambda e:p, 'pl:writable':lambda e:True,
             'pl:data-get':lambda e,key:1000.,'vlax-ename->vla-object':lambda e:e,
             'vlax-invoke':lambda obj,method:attributes,
-            'pl:db-get':lambda key,default:default,
+            'pl:db-get':lambda key,default:[Pair(Sym('scale'),100.),Pair(Sym('paper_height'),2.5)] if key=='PLOT_OPTIONS' else default,
             'entget':lambda e:[Pair(67,0),[10,200.,300.,0.]],
             'trans':lambda point,*args:point, 'vlax-3d-point':lambda p:p,
             'vla-get-TagString':lambda a:a['tag'], 'vla-Update':lambda *args:updates.append(args),
@@ -230,7 +230,7 @@ class DesignRules(fixtures.Rules):
         rows=self.rt.call('pl:spec-list-rows',[a,b])
         self.assertEqual(len(rows),2)
         self.assertEqual([chinese(v) for v in rows[1]],
-                         ['P002','香樟','乔木/竹类','——','8','400','500','株'])
+                         ['P002','香樟','乔木','——','8','400','500','株'])
         self.assertEqual(self.rt.call('pl:spec-list-rows',None),None)
 
     def test_new_tables_use_separate_layers_and_do_not_require_placed_plants(self):
