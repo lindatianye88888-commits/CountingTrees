@@ -171,7 +171,8 @@
 
 (defun pl:mark (e role handle / ed payload)
   (regapp pl:*app*)
-  (setq ed (entget e) payload (list pl:*app* (cons 1000 role)))
+  (setq ed (entget e) payload (list pl:*app*))
+  (if role (setq payload (append payload (list (cons 1000 role)))))
   (if handle (setq payload (append payload (list (cons 1005 handle)))))
   (if (not (entmod (append ed (list (list -3 payload)))))
     (pl:fail "无法保存对象关联。")) e)
@@ -534,6 +535,7 @@
     '(71 . 2) '(72 . 1) (cons 1 (strcat "\\qc;" (pl:label-text p opts)))
     (cons 7 (getvar "TEXTSTYLE")) '(11 1.0 0.0 0.0))))
   (pl:mark label "LABEL" h) (pl:data-put label "OPTIONS" opts)
+  (pl:remember-annotation-plant label p)
   (if (= (pl:get 'leader opts) 1)
     (progn
       (setq pos (trans (cdr (assoc 10 (entget tree))) tree 0))
@@ -579,6 +581,7 @@
                 (setq changed (not (equal ed (entget label))))
                 (if (or (not changed) (entmod ed))
                   (progn
+                    (pl:remember-annotation-plant label p)
                     (if changed (progn (entupd label) (setq n (1+ n))))
                     (setq pos (trans (cdr (assoc 10 (entget tree))) tree 0)
                           endpoint (cdr (assoc 10 (entget label))))
@@ -762,9 +765,10 @@
 (pl:register-command "PLHELP" "PLANTCADHELP")
 
 (if (pl:locate-core)
-  (progn
-    (pl:run 'pl:init-layers)
-    (pl:run 'pl:migrate-defs)
-    (princ "\nCountingTrees（数树） 0.3 已加载，植物及出图图层已检查。从CountingTrees（数树）浮窗选品种；输入PLANTCADHELP查看命令。")))
+  (if (not (and (boundp 'pl:*paste-load*) pl:*paste-load*))
+    (progn
+      (pl:run 'pl:init-layers)
+      (pl:run 'pl:migrate-defs)
+      (princ "\nCountingTrees（数树） 0.3 已加载，植物及出图图层已检查。从CountingTrees（数树）浮窗选品种；输入PLANTCADHELP查看命令。"))))
 (princ)
 

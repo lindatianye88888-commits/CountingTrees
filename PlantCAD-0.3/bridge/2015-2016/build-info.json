@@ -14,7 +14,7 @@
   },
   "compatibility_source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-Customization/files/GUID-A6C680F2-DE2E-418A-A182-E4884073338A.htm",
   "inputs": {
-    "PlantCADBridge.cs": "47792d2006f6e5f8eda7f21a48d2b92b51b1e8c7f306985ba17466ac04487e95",
+    "PlantCADBridge.cs": "8bc847c8d34ece2a15e1f14451e5536266d997191a4ccfc2335a3617aad182c2",
     "LispValueReader.cs": "16bfa6696e47b338af732053e0d29bcdeda12c4f92638396a2fb290acaaf7a6e",
     "PlantCADPanel.cs": "40c03804152b526feddf597794ac3bb6b9791b84f9bac3f8ed7ce7b3a253f734",
     "PlantCADWorkbench.cs": "b77875237c6aa5c15b7bf38e8981b6b85ea206f953ab6586dbca57932cdac9d3",
@@ -31,11 +31,12 @@
     "PlantProjectBridge.cs": "790fe6686c05bb4f688d52a819cd7f02151a91c50ce88d2caa30b3b1dbd2a7dc",
     "PlantAnnotationParser.cs": "30fbff08b13dda462f61093a8b2f56440bf79cc97d7fa92741464e20bf6029a8",
     "PlantProjectImport.cs": "65d94d3cb182e42c2ee5ec772ae697645acc7ed39bebcf3128c41e0515e40d7b",
+    "PlantPasteImport.cs": "83c87b6822762d9b40d603003617eef97ff5633f530b2c2be03bc3dbb7a4dca5",
     "acmgd.dll": "8efa8b9760879f970d48fce8c6b83b4dce0a653a7238672d0688e0f5561caa6f",
     "acdbmgd.dll": "b11af698d7a4cd9b9e2d0ff5e6dac970597617efc0f9cc68be1f120940decc90",
     "accoremgd.dll": "8cacba05c6499d70cbb96fc68f2111e7bb197d17a158376e58ea8ae41338f421",
     "csc.exe": "aae1db57f898ca8bda18590c56f86ced6d0ead80c22033b76fdfe9119706f116",
     "target": "2015-2016"
   },
-  "sha256": "1c0fa2973f4179d48d95da30bf80f80c60012b6da6db996f70873463d7176ca8"
+  "sha256": "d381bd60d0901a8ca4aa3e6fd0e6e883b09738441a84372ed48dec8befbb3a41"
 }

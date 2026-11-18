@@ -142,6 +142,78 @@ class ProjectImport(fixtures.Rules):
   self.assertEqual(self.rt.call('pl:get',Sym('handles'),self.db['LAST_COUNT_SCOPE']),['X'])
   self.assertEqual(self.db['LAST_COUNT'],None)
 
+ def pasted_batch(self,*handles):
+  self.rt.builtins['vl-catch-all-apply']=lambda fn,args:self.rt.call(str(fn),*(args or []))
+  self.rt.builtins['vl-catch-all-error-p']=lambda result:False
+  def mark(e,role,source):
+   self.roles[e]=role
+   self.sources[e]=source
+  self.rt.builtins['pl:mark']=mark
+  return self.rt.call('pl:paste-project-batch',list(handles))
+ def test_pasted_blocks_reuse_specs_and_remap_conflicting_ids_and_numbers(self):
+  incoming=self.put('spec_no','P001')
+  existing=self.put('crown',4,incoming)
+  self.db['PLANTS']=[existing]
+  self.source('T','TREE',incoming)
+  self.source('B','TREE',self.put('kind',3,incoming))
+  self.assertEqual(self.pasted_batch('T','B'),[2,0])
+  self.assertEqual(self.rt.call('pl:by-id','P1'),existing)
+  tree=self.data['T']['PLANT'];ball=self.data['B']['PLANT']
+  self.assertEqual([self.get('spec_no',p) for p in [tree,ball]],['P002','P003'])
+  self.source('T2','TREE',incoming)
+  self.assertEqual(self.pasted_batch('T2'),[1,0])
+  self.assertEqual(self.data['T2']['PLANT'],tree)
+  self.assertEqual(len(self.rt.call('pl:defs')),3)
+  self.assertEqual(self.rt.call('pl:count-rows',['T','T2'])[0][2],2)
+ def test_pasted_areas_keep_measured_quantities_and_reconnect_only_their_new_fill(self):
+  for i,kind in enumerate([1,2,4,5]):
+   plant=self.put('id','A'+str(kind),self.put('kind',kind,self.put('quantity_unit',gbk('平方米'))))
+   self.source('A'+str(i),'AREA',plant)
+  self.data['A0']['FILL_HANDLE']='OTHER'
+  self.source('F','AREA_FILL',None,'A0')
+  self.source('L','AREA_LABEL',None,'A0')
+  self.assertEqual(self.pasted_batch('F','L','A0','A1','A2','A3'),[4,0])
+  self.assertEqual(self.data['A0']['FILL_HANDLE'],'F')
+  self.assertEqual(self.data['F']['ANNOTATION_PLANT'],self.data['A0']['AREA_PLANT'])
+  rows=self.rt.call('pl:count-rows',['A0','A1','A2','A3','F','L'])
+  self.assertEqual(len(rows),4)
+  self.assertEqual([row[2] for row in rows],[3.13]*4)
+ def test_pasted_label_alone_uses_its_own_snapshot_and_has_no_quantity(self):
+  self.source('UNRELATED','TREE',self.put('name',gbk('银杏')))
+  self.source('L','LABEL',None,'UNRELATED')
+  self.data['L']={'ANNOTATION_PLANT':self.put('spec_no','P020')}
+  self.assertEqual(self.pasted_batch('L'),[1,0])
+  self.assertEqual(self.roles['L'],'PROJECT_SOURCE')
+  self.assertIsNone(self.sources['L'])
+  self.assertEqual(self.get('name',self.rt.call('pl:annotation-plant','L')),gbk('香樟'))
+  self.assertIsNone(self.rt.call('pl:quantity-data','L'))
+  self.assertEqual(self.rt.call('pl:project-import-one','L'),self.data['L']['PROJECT_PLANT'])
+ def test_pasted_legacy_area_label_uses_visible_name_but_never_the_displayed_area(self):
+  self.source('L','AREA_LABEL',None)
+  self.records['L']=self.record('萱草',area=1)
+  self.rt.builtins['entget']=lambda e:[Pair(0,'MULTILEADER'),Pair(5,e),Pair(8,gbk('PL_花境_标注'))]
+  self.assertEqual(self.pasted_batch('L'),[1,0])
+  p=self.rt.call('pl:annotation-plant','L')
+  self.assertEqual(self.get('kind',p),4)
+  self.assertEqual(self.get('quantity_unit',p),gbk('平方米'))
+  self.assertIsNone(self.rt.call('pl:quantity-data','L'))
+ def test_pasted_unbound_area_annotation_and_unresolved_line_remain_plain_graphics(self):
+  self.source('L','AREA_LABEL',None)
+  self.source('LINE','AREA_LEADER',None)
+  self.records['L']=self.record('区域 A23',area=1)
+  self.assertEqual(self.pasted_batch('L','LINE'),[0,1])
+  self.assertIsNone(self.roles['L'])
+  self.assertIsNone(self.roles['LINE'])
+  self.assertIsNone(self.rt.call('pl:defs'))
+ def test_paste_skips_locked_objects_and_does_not_touch_existing_geometry(self):
+  self.source('LOCKED','TREE',self.p)
+  self.locked.add('LOCKED')
+  self.source('NOT_PASTED','TREE',self.put('name',gbk('银杏')))
+  self.assertEqual(self.pasted_batch('LOCKED'),[0,1])
+  self.assertEqual(self.data['LOCKED']['PLANT'],self.p)
+  self.assertEqual(self.get('name',self.data['NOT_PASTED']['PLANT']),gbk('银杏'))
+  self.assertIsNone(self.rt.call('pl:defs'))
+
 for name in dir(fixtures.Rules):
  if name.startswith('test_') and name not in ProjectImport.__dict__:setattr(ProjectImport,name,None)
 if __name__=='__main__':unittest.main()

@@ -77,6 +77,7 @@ namespace PlantCADBridge {
    if(Process.GetCurrentProcess().ProcessName.Equals("accoreconsole",StringComparison.OrdinalIgnoreCase)) return;
    InitializeWorkbench();
    InitializeInstanceEditing();
+   InitializePasteImport();
    timer = new System.Windows.Forms.Timer();
    timer.Interval = 500;
    timer.Tick += OnIdle;
@@ -85,7 +86,7 @@ namespace PlantCADBridge {
    AcadApp.DocumentManager.DocumentToBeDestroyed += OnDocumentClosing;
   }
   public void Terminate() {
-   TerminateInstanceEditing();EndAreaSession();
+   TerminateInstanceEditing();TerminatePasteImport();EndAreaSession();
    AcadApp.Idle -= OnIdle;
    AcadApp.DocumentManager.DocumentToBeDestroyed -= OnDocumentClosing;
    if (timer != null) { timer.Stop(); timer.Dispose(); timer = null; }
@@ -94,6 +95,7 @@ namespace PlantCADBridge {
    if (badge != null) { badge.Dispose(); badge = null; }
   }
   static void OnDocumentClosing(object sender,DocumentCollectionEventArgs args) {
+   ForgetPastes(args.Document);
    ForgetDocument(args.Document);
    if (Object.ReferenceEquals(args.Document,boundDocument)) CloseSession();
   }
@@ -142,7 +144,12 @@ namespace PlantCADBridge {
   public void DisconnectNamespaced() { CloseSession(); }
   public void Disconnect() { CloseSession(); }
   static void OnIdle(object sender,EventArgs args) {
-   try { if (!(sender is System.Windows.Forms.Timer)) WorkbenchIdle(); } catch (System.Exception ex) { if (workView != null) workView.Message(ex.Message,true); }
+   try {
+    if (!(sender is System.Windows.Forms.Timer)) {
+     DispatchPasteImport();
+     WorkbenchIdle();
+    }
+   } catch (System.Exception ex) { if (workView != null) workView.Message(ex.Message,true); }
    if (boundDocument == null) return;
    try {
     if ((DateTime.UtcNow-lastHeartbeat).TotalSeconds >= 1) {

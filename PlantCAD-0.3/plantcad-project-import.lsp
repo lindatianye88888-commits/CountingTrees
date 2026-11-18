@@ -17,10 +17,14 @@
         (if (equal (pl:role e) "PROJECT_SOURCE") (setq result (cons e result))))
       (reverse result))))
 
-(defun pl:project-canonical (p / existing row)
+(defun pl:project-canonical (p / existing row key)
   (setq p (pl:upgrade-plant p))
-  (foreach row (pl:defs)
-    (if (equal (pl:physical-key row) (pl:physical-key p)) (setq existing row)))
+  (setq key (pl:physical-key p) existing (pl:by-id (pl:get 'id p)))
+  (if (not (and existing (equal key (pl:physical-key existing))))
+    (progn
+      (setq existing nil)
+      (foreach row (pl:defs)
+        (if (equal key (pl:physical-key row)) (setq existing row)))))
   (if existing
     (pl:put 'id (pl:get 'id existing) (pl:put 'spec_no (pl:get 'spec_no existing) p))
     (if (and (/= (pl:get 'id p) "") (/= (pl:get 'spec_no p) "")
@@ -38,9 +42,8 @@
     (if (and (numberp value) (>= value 0))
       (if (not (equal (pl:get key p) (if (member key '(height crown)) (/ value 100.0) value) 1.0e-6)) (setq good nil)))) good)
 
-(defun pl:project-record-seed (record / p species row key index value)
-  (setq p (pl:empty-plant (pl:new-id)))
-  (setq p (pl:put 'spec_no (pl:next-spec-number (pl:used-specs)) (pl:put 'name (nth 1 record) p)))
+(defun pl:project-record-data (record / p species row key index value)
+  (setq p (pl:put 'name (nth 1 record) (pl:empty-plant "")))
   (foreach row pl:*project-import-catalog*
     (if (equal (pl:normal-name (pl:get 'name row)) (pl:normal-name (nth 1 record))) (setq species row)))
   (if species (setq p (pl:put 'species_id (pl:get 'id species)
@@ -53,6 +56,8 @@
     (if (and (numberp value) (>= value 0))
       (setq p (pl:put key (if (member key '(height crown)) (/ value 100.0) value) p))))
   (if (> (pl:get 'caliper p) 0) (setq p (pl:put 'diameter_mode 1 p))) p)
+(defun pl:project-record-seed (record)
+  (pl:put 'id (pl:new-id) (pl:put 'spec_no (pl:next-spec-number (pl:used-specs)) (pl:project-record-data record))))
 
 (defun pl:project-record-plant (record / pair matches row p index)
   (if (setq pair (assoc (cdr record) pl:*project-import-memo*)) (cadr pair)
@@ -71,7 +76,8 @@
 
 (defun pl:project-import-one (e / p record role original)
   (setq role (pl:role e) p (pl:annotation-plant e))
-  (if (and (equal role "PROJECT_SOURCE") (boundp 'pl:*native-ui*) pl:*native-ui*)
+  (if (and (equal role "PROJECT_SOURCE") (pl:data-get e "PROJECT_RECORD")
+           (boundp 'pl:*native-ui*) pl:*native-ui*)
     (progn
       (setq record (pl:native-project-record (cdr (assoc 5 (entget e)))))
       (if (not record) (setq p nil)
@@ -137,6 +143,152 @@
         (if (not (member key seen))
           (setq seen (cons key seen) result (append result (list (list p nil "pending")))))))) result)
 
+;;; Clipboard import uses only the objects appended by that paste.
+(defun pl:remember-annotation-plant (e p)
+  (if (not (equal p (pl:data-get e "ANNOTATION_PLANT"))) (pl:data-put e "ANNOTATION_PLANT" p)))
+
+(defun pl:pasted-plant (raw / pair p)
+  (if raw
+    (if (setq pair (assoc raw pl:*paste-specs*)) (cdr pair)
+      (progn
+        (if (not (pl:plant-error raw))
+          (progn
+            (setq p (pl:upgrade-plant raw))
+            (if (and (= (pl:get 'style p) 2) (not (tblsearch "BLOCK" (pl:get 'block p))))
+              (setq p (pl:put 'style 0 (pl:put 'block "" (pl:put 'base 1.0 p)))))
+            (setq p (pl:project-canonical p))))
+        (setq pl:*paste-specs* (cons (cons raw p) pl:*paste-specs*))
+        p))))
+
+(defun pl:pasted-plant-key (role)
+  (cond ((equal role "TREE") "PLANT")
+        ((equal role "AREA") "AREA_PLANT")
+        ((equal role "PROJECT_SOURCE") "PROJECT_PLANT")))
+
+(defun pl:pasted-legacy-label (e role / record name kind p)
+  (setq record (pl:native-project-record (cdr (assoc 5 (entget e)))))
+  (if (and (listp record) (equal (car record) "PROJECT_RECORD")
+    (setq name (nth 1 record)) (/= name "") (not (equal (vl-string-search "区域 " name) 0)))
+    (progn
+      (if (not pl:*project-import-catalog*) (setq pl:*project-import-catalog* (pl:catalog)))
+      (setq p (pl:project-record-data record)
+        kind (cdr (assoc (cdr (assoc 8 (entget e)))
+          '(("PL_标注_树木" . 0) ("PL_灌木_标注" . 1) ("PL_草地_标注" . 2)
+            ("PL_灌木球_标注" . 3) ("PL_花境_标注" . 4) ("PL_竹类_标注" . 6)))))
+      (if (and (equal kind 2) (= (pl:get 'kind p) 5)) (setq kind 5))
+      (if (numberp kind) (setq p (pl:put 'kind kind p)))
+      (if (equal role "AREA_LABEL")
+        (setq p (pl:put 'quantity_unit "平方米"
+          (pl:put 'kind (if (pl:area-kind-p (pl:get 'kind p)) (pl:get 'kind p) 1) p))))
+      p)))
+
+(defun pl:pasted-block-number (e no / child ed)
+  ;; Preserve the pasted block transform, attribute placement and visibility.
+  (if (equal (cdr (assoc 66 (entget e))) 1)
+    (progn
+      (setq child (entnext e))
+      (while (and child (= (cdr (assoc 0 (setq ed (entget child)))) "ATTRIB"))
+        (if (and (equal (strcase (cdr (assoc 2 ed))) "PL_SPEC") (not (equal (cdr (assoc 1 ed)) no)))
+          (if (entmod (pl:set-dxf 1 no ed)) (entupd e)))
+        (setq child (entnext child))))))
+
+(defun pl:pasted-label-number (e p / opts ed text)
+  (if (and (setq opts (pl:data-get e "OPTIONS")) (= (pl:get 'mode opts) 3))
+    (progn
+      (setq ed (entget e) text (strcat "\\qc;" (pl:label-text p opts)))
+      (if (not (equal text (cdr (assoc 1 ed))))
+        (if (entmod (pl:set-dxf 1 text ed)) (entupd e))))))
+
+(defun pl:pasted-root (e role key / raw p)
+  (setq raw (pl:data-get e key) p (pl:pasted-plant raw))
+  (cond
+    (p
+      (if (not (equal p raw)) (pl:data-put e key p))
+      (if (and (equal role "TREE") (not (equal (pl:get 'spec_no p) (pl:get 'spec_no raw))))
+        (pl:pasted-block-number e (pl:get 'spec_no p)))
+      1)
+    ((and (equal role "AREA") (not raw)) 0)))
+
+(defun pl:pasted-output (e role roots / source source-role key p raw label)
+  (setq source (pl:source e) label (member role '("LABEL" "AREA_LABEL" "AREA_FILL")))
+  (if (and (member source roots) (setq source-role (pl:role source))
+    (if (member role '("LABEL" "LEADER")) (equal source-role "TREE") (equal source-role "AREA")))
+    (progn
+      (if (and label (setq key (pl:pasted-plant-key source-role)))
+        (progn
+          (setq p (pl:data-get source key))
+          (pl:remember-annotation-plant e p)
+          (if (and p (equal role "LABEL")) (pl:pasted-label-number e p))))
+      (if (equal role "AREA_FILL")
+        (setq pl:*paste-fills* (cons (cons source (cdr (assoc 5 (entget e)))) pl:*paste-fills*)))
+      (if (and (equal role "AREA_LABEL") (equal (cdr (assoc 0 (entget e))) "MTEXT")
+        (not (pl:data-get e "OUTPUT_OPTIONS")))
+        (setq pl:*paste-anchors* (cons (cons source (cdr (assoc 10 (entget e)))) pl:*paste-anchors*)))
+      0)
+    ;; A 1005 reference is only trusted if its source was pasted in this batch.
+    (progn
+      (if label
+        (progn
+          (setq raw (pl:data-get e "ANNOTATION_PLANT"))
+          (if (and (not raw) (member role '("LABEL" "AREA_LABEL")))
+            (setq raw (pl:pasted-legacy-label e role)))
+          (setq p (pl:pasted-plant raw))))
+      (if p
+        (progn
+          (pl:data-put e "PROJECT_PLANT" p)
+          (pl:data-put e "PROJECT_COUNT" nil)
+          (pl:mark e "PROJECT_SOURCE" nil)
+          (if (equal role "LABEL") (pl:pasted-label-number e p))
+          1)
+        (progn (pl:mark e nil nil) (if (not label) 0))))))
+
+(defun pl:pasted-object (e roots / role key)
+  (if (pl:writable e)
+    (if (setq key (pl:pasted-plant-key (setq role (pl:role e))))
+      (pl:pasted-root e role key)
+      (pl:pasted-output e role roots))))
+
+(defun pl:restore-pasted-area-links (e / fill anchor)
+  (setq fill (cdr (assoc e pl:*paste-fills*)) anchor (cdr (assoc e pl:*paste-anchors*)))
+  (if (not (equal fill (pl:data-get e "FILL_HANDLE"))) (pl:data-put e "FILL_HANDLE" fill))
+  (if (not (equal anchor (pl:data-get e "AREA_ANCHOR"))) (pl:data-put e "AREA_ANCHOR" anchor)))
+
+(defun pl:paste-project-batch (handles / h e role roots outputs areas result n skipped pl:*paste-fills* pl:*paste-anchors*)
+  (setq n 0 skipped 0)
+  (foreach h handles
+    (if (and (setq e (handent h)) (entget e) (setq role (pl:role e)))
+      (if (pl:pasted-plant-key role)
+        (progn (setq roots (cons e roots)) (if (equal role "AREA") (setq areas (cons e areas))))
+        (setq outputs (cons e outputs)))))
+  (foreach e (append (reverse roots) (reverse outputs))
+    (setq pl:*failure* nil result (vl-catch-all-apply 'pl:pasted-object (list e roots)))
+    (if (numberp result) (setq n (+ n result)) (setq skipped (1+ skipped))))
+  (foreach e areas
+    (if (pl:writable e)
+      (if (vl-catch-all-error-p (vl-catch-all-apply 'pl:restore-pasted-area-links (list e)))
+        (setq skipped (1+ skipped)))))
+  (list n skipped))
+
+(defun pl:import-pasted-work (/ batch result before n skipped tables pl:*paste-specs* pl:*project-import-catalog*
+    pl:*sync-busy* pl:*entity-cache* pl:*link-cache* pl:*area-value-cache* pl:*count-cache*)
+  (setq before (length (pl:defs)) n 0 skipped 0)
+  (foreach batch pl:*paste-batches*
+    (setq result (pl:paste-project-batch batch) n (+ n (car result)) skipped (+ skipped (cadr result))))
+  ;; Refresh schedules without importing old table edits or rebuilding drawing geometry.
+  (if (> n 0)
+    (progn
+      (setq pl:*sync-busy* T)
+      (pl:cache-entities)
+      (setq tables (pl:ai-refresh-tables))
+      (princ (strcat "\n数树识别到 " (itoa n) " 个粘贴的植物对象，新增 " (itoa (- (length (pl:defs)) before)) " 个项目规格。"))
+      (if (> (cadr tables) 0) (princ (strcat "\n有 " (itoa (cadr tables)) " 张关联表未刷新。")))))
+  (if (> skipped 0) (princ (strcat "\n有 " (itoa skipped) " 个粘贴对象缺少可用数据或无法写入，未完成识别。")))
+  (setq pl:*drawing-changed* nil pl:*failure* nil))
+
+(defun pl:import-pasted-batches (pl:*paste-batches* / pl:*native-ui*)
+  (setq pl:*native-ui* T)
+  (pl:run 'pl:import-pasted-work))
+
 ;;; Delete exactly one project specification, including its managed drawing output.
 (defun pl:project-without-id (rows id / result row)
   (foreach row rows
@@ -192,4 +344,5 @@
         (princ (strcat "\n有 " (itoa (cadr pl:*sync-result*)) " 个关联表未能刷新，请查看命令记录；可用 U 撤销本次改动。")))
       (princ (strcat "\n已删除规格 " (pl:get 'spec_no p) "；对应图上对象已删除，关联表已处理。")) T)
     (progn (princ "\n已取消删除，图纸和项目规格未更改。") nil)))
+(setq pl:*paste-import-loaded* T)
 (princ)
